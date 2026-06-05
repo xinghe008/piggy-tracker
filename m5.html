@@ -951,7 +951,11 @@ async function pollData() {
         const apiData = await res.json();
         // GitHub API 返回 base64 编码的 content
         if (!apiData.content) return;
-        const text = decodeURIComponent(escape(atob(apiData.content)));
+        // 用 TextDecoder 正确解码 UTF-8（避免中文乱码）
+        const raw = atob(apiData.content);
+        const bytes = new Uint8Array(raw.length);
+        for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+        const text = new TextDecoder('utf-8').decode(bytes);
         // 简单 hash 检测变化，避免重复处理
         const hash = text.length + '-' + text.slice(-100);
         if (hash === lastDataHash) return;
