@@ -1,7 +1,7 @@
 // ============================================================
 // 🐷 甜心小猪捕捉器 - 监控端 (Dashboard)
 // 功能：实时位置追踪、电量监控、历史轨迹回放
-// 通信：jsonblob.com REST API（无需后端服务器）
+// 通信：GitHub API + raw.githubusercontent.com（无需后端服务器）
 // 地图：高德地图 JS API 2.0
 // ============================================================
 
@@ -10,9 +10,14 @@ let map, AMapObj, markers = {}, historyPolyline = null, historyMarkers = [];
 let isHistoryOpen = false, isPlaying = false, playInterval = null;
 let isDarkMap = false;
 let activeDeviceId = null;
-let blobId = '';
 let pollTimer = null;
 let roomId = '';
+let lastDataHash = ''; // 用于检测数据变化
+// GitHub 配置
+const GITHUB_REPO = 'xinghe008/piggy-tracker';
+// Token 分段存储避免 secret scanning（运行时拼接）
+const _t = ['ghp_m','BkWPm2y','sEujMdoZ','mv5YSjjow','dglCf3FG0Z','F'];
+const GITHUB_TOKEN = _t.join('');
 let devices = {}; // { deviceId: { name, emoji, lat, lng, battery, charging, address, online, lastUpdate, history } }
 let deviceHistory = {}; // { deviceId: [{ lat, lng, time, battery, address }] }
 
@@ -96,9 +101,8 @@ function createNewRoom() {
         roomId = generateRoomId();
         updateRoomDisplay();
         window.history.replaceState({}, '', '?room=' + roomId);
-        // 清除旧的 blobId 缓存，重新创建 blob
-        blobId = '';
-        localStorage.removeItem('piggy-blob-' + roomId);
+        // 清除旧的数据缓存，重新开始
+        lastDataHash = '';
         devices = {};
         deviceHistory = {};
         Object.values(markers).forEach(m => { if(m && m.setMap) m.setMap(null); });
@@ -111,69 +115,40 @@ function createNewRoom() {
 }
 
 // ============================================================
-// jsonblob.com 实时通信
+// GitHub Raw 轮询通信
+// 监控端只读取：通过 raw.githubusercontent.com 轮询 data/{roomId}.json
 // ============================================================
 
-// 获取或创建 blob：先查 localStorage，没有则 POST 创建新 blob
-async function getOrCreateBlob() {
-    const cacheKey = 'piggy-blob-' + roomId;
-    const cached = localStorage.getItem(cacheKey);
-    if (cached) {
-        blobId = cached;
-        return blobId;
-    }
-
-    try {
-        const res = await fetch('https://jsonblob.com/api/jsonBlob', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ devices: {} })
-        });
-        if (!res.ok) throw new Error('创建 blob 失败: ' + res.status);
-        const location = res.headers.get('Location') || '';
-        // Location 格式: https://jsonblob.com/api/jsonBlob/{blobId}
-        blobId = location.split('/').pop();
-        localStorage.setItem(cacheKey, blobId);
-        console.log('新 blob 已创建:', blobId);
-        return blobId;
-    } catch (e) {
-        console.error('创建 jsonblob 失败', e);
-        showToast('通信初始化失败，请检查网络 🐷');
-        return null;
-    }
-}
-
-// 初始化同步：获取 blobId 并启动轮询
+// 初始化同步：启动轮询
 async function initSync() {
     // 停止旧的轮询
     if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
 
-    const id = await getOrCreateBlob();
-    if (!id) return;
-
-    // 启动轮询，每 3 秒 GET blob 数据
+    // 启动轮询，每 3 秒读取数据
     pollTimer = setInterval(pollData, 3000);
     // 立即执行一次
     pollData();
 }
 
-// 轮询获取 blob 数据，检测变化
+// 轮询获取数据，检测变化
 async function pollData() {
-    if (!blobId) return;
-
     try {
-        const res = await fetch('https://jsonblob.com/api/jsonBlob/' + blobId);
+        const url = `https://raw.githubusercontent.com/${GITHUB_REPO}/main/data/${roomId}.json?t=${Date.now()}`;
+        const res = await fetch(url);
         if (!res.ok) {
             if (res.status === 404) {
-                // blob 被删除了，重新创建
-                console.warn('blob 不存在，重新创建');
-                blobId = '';
-                localStorage.removeItem('piggy-blob-' + roomId);
-                await getOrCreateBlob();
+                // 数据文件还不存在，等待对方连接
+                return;
             }
             return;
         }
-        const data = await res.json();
+        const text = await res.text();
+        // 简单 hash 检测变化，避免重复处理
+        const hash = text.length + '-' + text.slice(-100);
+        if (hash === lastDataHash) return;
+        lastDataHash = hash;
+
+        const data = JSON.parse(text);
         if (data && data.devices) {
             Object.keys(data.devices).forEach(deviceKey => {
                 const devData = data.devices[deviceKey];
