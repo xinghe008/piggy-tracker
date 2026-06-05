@@ -1,1 +1,1 @@
-{"devices":{},"messages":[{"from":"device-dev-1780661806110-20ek2t","text":"qqq","time":"2026-06-05T15:12:25.974Z"}]}
+{"devices":{"device-dev-1780661806110-20ek2t":{"name":"🐷 xh","emoji":"🐷","lat":38.97232479992215,"lng":121.57208329831946,"battery":100,"charging":false,"address":"华中街,  兴华街道,  上沟","online":true,"lastUpdate":"2026-06-05T15:12:29.261Z","speed":0}},"messages":[{"from":"device-dev-1780661806110-20ek2t","text":"qqq","time":"2026-06-05T15:12:25.974Z"}]}
