@@ -133,10 +133,24 @@ async function initSync() {
 // 轮询获取数据，检测变化
 async function pollData() {
     try {
-        const url = `https://raw.githubusercontent.com/${GITHUB_REPO}/main/data/${roomId}.json?t=${Date.now()}`;
-        const res = await fetch(url);
-        if (!res.ok) {
-            if (res.status === 404) {
+        // 优先用 GitHub Pages（国内可访问），回退到 raw.githubusercontent.com
+        const baseUrl = window.location.origin + window.location.pathname;
+        const pageBase = baseUrl.substring(0, baseUrl.lastIndexOf('/') + 1);
+        const urls = [
+            pageBase + 'data/' + roomId + '.json?t=' + Date.now(),
+            `https://raw.githubusercontent.com/${GITHUB_REPO}/main/data/${roomId}.json?t=${Date.now()}`
+        ];
+        let res = null;
+        for (const url of urls) {
+            try {
+                res = await fetch(url);
+                if (res.ok || res.status === 404) break;
+            } catch (e) {
+                continue;
+            }
+        }
+        if (!res || !res.ok) {
+            if (res && res.status === 404) {
                 // 数据文件还不存在，等待对方连接
                 return;
             }
