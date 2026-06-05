@@ -897,7 +897,7 @@ function updateRoomDisplay() {
 function copyRoomLink() {
     const baseUrl = window.location.origin + window.location.pathname;
     const monitorLink = baseUrl + '?room=' + roomId;
-    const authLink = baseUrl.replace('m3.html', 'auth2.html').replace('m.html', 'auth2.html').replace('index.html', 'auth2.html') + '?room=' + roomId;
+    const authLink = baseUrl.replace('m3.html', 'auth3.html').replace('m.html', 'auth3.html').replace('index.html', 'auth3.html') + '?room=' + roomId;
 
     const text = `🐷 甜心小猪捕捉器\n\n🔗 授权链接（发给对方）：\n${authLink}\n\n📋 你的房间号：${roomId}\n（对方也可以直接打开授权页，手动输入房间号 ${roomId}）\n\n✅ 使用步骤：\n1. 把上面的「授权链接」发给对方\n2. 对方打开链接 → 输入昵称 → 选头像 → 点击授权\n3. 你就能在当前页面看到对方的位置和电量了！`;
 
