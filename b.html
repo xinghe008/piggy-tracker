@@ -16,6 +16,11 @@
             --pink-light: #FFB8D0;
             --pink-dark: #E84580;
             --pink-bg: #FFF0F5;
+            --pink-deep: #D4366A;
+            --lavender: #C8A2E8;
+            --lavender-light: #EDE0F7;
+            --sky: #A8D8EA;
+            --sky-light: #D6EFF8;
             --yellow: #FFD93D;
             --yellow-light: #FFF3B0;
             --mint: #A8E6CF;
@@ -24,14 +29,14 @@
             --text: #5D4037;
             --text-light: #8D6E63;
             --white: #FFFFFF;
-            --shadow: 0 6px 24px rgba(255,107,157,0.15);
-            --shadow-lg: 0 12px 40px rgba(255,107,157,0.2);
+            --shadow: 0 8px 32px rgba(255,107,157,0.12);
+            --shadow-lg: 0 16px 48px rgba(255,107,157,0.18);
             --radius: 24px;
             --radius-sm: 16px;
         }
         body {
             font-family: 'Noto Sans SC', sans-serif;
-            background: var(--pink-bg);
+            background: linear-gradient(145deg, #FFF0F5 0%, #F0E6FF 35%, #E6F4FF 65%, #FFF5F0 100%);
             color: var(--text);
             min-height: 100vh;
             display: flex;
@@ -44,77 +49,111 @@
         }
         .cute-font { font-family: 'ZCOOL KuaiLe', cursive; }
 
-        /* 背景装饰 */
-        body::before {
-            content: '';
-            position: absolute;
-            width: 400px; height: 400px;
-            background: radial-gradient(circle, rgba(255,107,157,0.1) 0%, transparent 70%);
-            top: -150px; right: -150px;
+        /* 柔和渐变光斑背景 */
+        .bg-orb {
+            position: fixed;
             border-radius: 50%;
+            filter: blur(80px);
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.5;
         }
-        body::after {
-            content: '';
-            position: absolute;
-            width: 500px; height: 500px;
-            background: radial-gradient(circle, rgba(255,217,61,0.08) 0%, transparent 70%);
-            bottom: -200px; left: -200px;
-            border-radius: 50%;
+        .bg-orb-1 {
+            width: 360px; height: 360px;
+            background: radial-gradient(circle, rgba(255,107,157,0.25) 0%, transparent 70%);
+            top: -120px; right: -100px;
+            animation: orbFloat1 20s ease-in-out infinite;
+        }
+        .bg-orb-2 {
+            width: 300px; height: 300px;
+            background: radial-gradient(circle, rgba(200,162,232,0.3) 0%, transparent 70%);
+            bottom: -80px; left: -80px;
+            animation: orbFloat2 25s ease-in-out infinite;
+        }
+        .bg-orb-3 {
+            width: 240px; height: 240px;
+            background: radial-gradient(circle, rgba(168,216,234,0.25) 0%, transparent 70%);
+            top: 40%; left: 50%;
+            transform: translateX(-50%);
+            animation: orbFloat3 18s ease-in-out infinite;
+        }
+        @keyframes orbFloat1 {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-30px, 20px); }
+        }
+        @keyframes orbFloat2 {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(20px, -30px); }
+        }
+        @keyframes orbFloat3 {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-20px); }
         }
 
+        /* 隐藏浮动爱心 */
         .floating-hearts {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            pointer-events: none; z-index: 0;
-        }
-        .heart {
-            position: absolute;
-            font-size: 20px;
-            opacity: 0.12;
-            animation: floatHeart 15s infinite linear;
-        }
-        @keyframes floatHeart {
-            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
-            10% { opacity: 0.12; }
-            90% { opacity: 0.12; }
-            100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+            display: none !important;
         }
 
-        /* 主卡片 */
+        /* 主卡片 - 毛玻璃效果 */
         .auth-card {
-            background: var(--white);
-            border-radius: 32px;
+            background: rgba(255, 255, 255, 0.72);
+            backdrop-filter: blur(24px) saturate(1.4);
+            -webkit-backdrop-filter: blur(24px) saturate(1.4);
+            border-radius: 28px;
             padding: 40px 32px;
             max-width: 420px;
             width: 100%;
-            box-shadow: var(--shadow-lg);
-            border: 2px solid var(--pink-light);
+            box-shadow:
+                0 8px 32px rgba(255,107,157,0.10),
+                0 2px 8px rgba(200,162,232,0.08),
+                inset 0 1px 0 rgba(255,255,255,0.6);
+            border: 1.5px solid rgba(255, 184, 208, 0.35);
             position: relative;
             z-index: 1;
             text-align: center;
+            transition: box-shadow 0.4s ease;
+        }
+        .auth-card::before {
+            content: '';
+            position: absolute;
+            inset: -1.5px;
+            border-radius: 29px;
+            padding: 1.5px;
+            background: linear-gradient(135deg, rgba(255,107,157,0.4), rgba(200,162,232,0.3), rgba(168,216,234,0.3), rgba(255,183,208,0.4));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
         }
 
         .pig-icon {
             font-size: 72px;
             display: block;
             margin-bottom: 16px;
-            animation: pigBounce 2s ease-in-out infinite;
+            animation: pigBounce 2.5s ease-in-out infinite;
+            filter: drop-shadow(0 4px 12px rgba(255,107,157,0.2));
         }
         @keyframes pigBounce {
-            0%, 100% { transform: translateY(0) rotate(-5deg); }
-            50% { transform: translateY(-10px) rotate(5deg); }
+            0%, 100% { transform: translateY(0) rotate(-3deg) scale(1); }
+            50% { transform: translateY(-8px) rotate(3deg) scale(1.05); }
         }
 
         .auth-title {
             font-size: 26px;
             font-weight: 700;
-            color: var(--pink-dark);
+            background: linear-gradient(135deg, var(--pink-dark), var(--lavender), var(--pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
             margin-bottom: 8px;
         }
         .auth-subtitle {
             font-size: 14px;
             color: var(--text-light);
             margin-bottom: 28px;
-            line-height: 1.6;
+            line-height: 1.7;
+            font-weight: 300;
         }
 
         /* 表单 */
@@ -124,33 +163,37 @@
         }
         .form-label {
             font-size: 13px;
-            font-weight: 600;
+            font-weight: 500;
             color: var(--text);
             margin-bottom: 8px;
             display: block;
+            letter-spacing: 0.3px;
         }
         .form-label i {
             color: var(--pink);
-            margin-right: 4px;
+            margin-right: 6px;
+            font-size: 12px;
         }
         .form-input {
             width: 100%;
             padding: 14px 18px;
-            border: 2px solid var(--pink-light);
-            border-radius: 16px;
+            border: 1.5px solid rgba(255,184,208,0.4);
+            border-radius: 14px;
             font-size: 16px;
             font-family: inherit;
             color: var(--text);
-            background: var(--pink-bg);
-            transition: all 0.2s;
+            background: rgba(255,240,245,0.5);
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
             outline: none;
         }
         .form-input:focus {
             border-color: var(--pink);
-            box-shadow: 0 0 0 4px rgba(255,107,157,0.1);
+            box-shadow: 0 0 0 4px rgba(255,107,157,0.1), 0 0 20px rgba(255,107,157,0.08);
+            background: rgba(255,255,255,0.8);
         }
         .form-input::placeholder {
             color: #C4A0A0;
+            font-weight: 300;
         }
 
         /* Emoji 选择 */
@@ -161,53 +204,61 @@
             justify-content: center;
         }
         .emoji-option {
-            width: 48px; height: 48px;
+            width: 50px; height: 50px;
             border-radius: 50%;
-            border: 2px solid #EEEEEE;
+            border: 2px solid rgba(238,238,238,0.6);
             display: flex; align-items: center; justify-content: center;
             font-size: 24px;
             cursor: pointer;
-            transition: all 0.2s;
-            background: var(--white);
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            background: rgba(255,255,255,0.7);
         }
         .emoji-option:hover {
-            transform: scale(1.15);
+            transform: scale(1.18);
             border-color: var(--pink-light);
+            box-shadow: 0 4px 16px rgba(255,107,157,0.15);
         }
         .emoji-option.selected {
             border-color: var(--pink);
-            background: var(--pink-bg);
-            box-shadow: 0 0 0 3px rgba(255,107,157,0.15);
-            transform: scale(1.1);
+            background: rgba(255,240,245,0.8);
+            box-shadow: 0 0 0 3px rgba(255,107,157,0.12), 0 4px 16px rgba(255,107,157,0.15);
+            transform: scale(1.12);
         }
 
         /* 权限说明 */
         .permissions {
-            background: var(--pink-bg);
+            background: rgba(255,240,245,0.5);
             border-radius: var(--radius-sm);
-            padding: 16px;
+            padding: 18px 20px;
             margin-bottom: 24px;
             text-align: left;
+            border: 1px solid rgba(255,184,208,0.25);
         }
         .permissions-title {
             font-size: 13px;
             font-weight: 600;
             color: var(--pink-dark);
-            margin-bottom: 12px;
+            margin-bottom: 14px;
+            letter-spacing: 0.3px;
+        }
+        .permissions-title i {
+            margin-right: 6px;
         }
         .permission-item {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 6px 0;
+            gap: 12px;
+            padding: 8px 0;
             font-size: 13px;
             color: var(--text-light);
+            font-weight: 300;
         }
         .permission-item i {
             color: var(--pink);
-            font-size: 14px;
-            width: 20px;
+            font-size: 13px;
+            width: 22px;
             text-align: center;
+            opacity: 0.8;
         }
 
         /* 按钮 */
@@ -215,33 +266,67 @@
             width: 100%;
             padding: 16px;
             border: none;
-            border-radius: 20px;
+            border-radius: 16px;
             font-size: 17px;
             font-weight: 700;
             font-family: inherit;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
+            position: relative;
+            overflow: hidden;
         }
         .btn-authorize {
-            background: linear-gradient(135deg, var(--pink), var(--pink-dark));
+            background: linear-gradient(135deg, var(--pink), var(--pink-dark), var(--lavender));
+            background-size: 200% 200%;
             color: white;
-            box-shadow: 0 6px 20px rgba(255,107,157,0.3);
+            box-shadow: 0 6px 24px rgba(255,107,157,0.3);
+            animation: gradientShift 4s ease infinite;
+        }
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .btn-authorize::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent 30%,
+                rgba(255,255,255,0.15) 50%,
+                transparent 70%
+            );
+            transform: translateX(-100%);
+            transition: none;
+        }
+        .btn-authorize:hover::after {
+            animation: shimmer 0.8s ease forwards;
+        }
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
         }
         .btn-authorize:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(255,107,157,0.4);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 10px 36px rgba(255,107,157,0.35);
         }
         .btn-authorize:active {
-            transform: translateY(0);
+            transform: translateY(0) scale(0.98);
+            transition-duration: 0.1s;
         }
         .btn-authorize:disabled {
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
+            animation: none;
         }
 
         /* 状态页 */
@@ -259,66 +344,94 @@
             font-size: 64px;
             display: block;
             margin-bottom: 16px;
+            filter: drop-shadow(0 4px 12px rgba(255,107,157,0.2));
         }
         .status-title {
             font-size: 22px;
             font-weight: 700;
-            color: var(--pink-dark);
+            background: linear-gradient(135deg, var(--pink-dark), var(--lavender));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
             margin-bottom: 8px;
         }
         .status-desc {
             font-size: 14px;
             color: var(--text-light);
-            line-height: 1.6;
+            line-height: 1.7;
             margin-bottom: 24px;
+            font-weight: 300;
         }
 
         /* 状态信息 */
         .status-info {
-            background: var(--pink-bg);
+            background: rgba(255,240,245,0.45);
             border-radius: var(--radius-sm);
-            padding: 16px;
+            padding: 18px 20px;
             margin-bottom: 20px;
+            border: 1px solid rgba(255,184,208,0.2);
         }
         .status-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px dashed var(--pink-light);
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,184,208,0.2);
         }
         .status-row:last-child { border-bottom: none; }
         .status-row-label {
             font-size: 13px;
             color: var(--text-light);
+            font-weight: 300;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .status-row-label i {
+            font-size: 12px;
+            opacity: 0.7;
+            width: 16px;
+            text-align: center;
         }
         .status-row-value {
             font-size: 14px;
             font-weight: 600;
+            color: var(--text);
         }
 
         .btn-stop {
-            background: #FFEBEE;
+            background: rgba(255,235,238,0.7);
             color: #C62828;
-            border: 2px solid #FFCDD2;
+            border: 1.5px solid rgba(255,205,210,0.6);
         }
         .btn-stop:hover {
-            background: #FFCDD2;
-            transform: translateY(-2px);
+            background: rgba(255,205,210,0.7);
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 6px 20px rgba(198,40,40,0.12);
+        }
+        .btn-stop:active {
+            transform: translateY(0) scale(0.98);
+            transition-duration: 0.1s;
         }
 
         /* 房间号显示 */
         .room-badge {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            background: var(--pink-bg);
-            padding: 6px 16px;
+            gap: 8px;
+            background: rgba(255,240,245,0.6);
+            padding: 8px 18px;
             border-radius: 20px;
             font-size: 13px;
             color: var(--pink-dark);
             margin-bottom: 20px;
-            border: 1px solid var(--pink-light);
+            border: 1px solid rgba(255,184,208,0.3);
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+        .room-badge i {
+            font-size: 12px;
+            opacity: 0.7;
         }
 
         /* 错误提示 */
@@ -326,7 +439,13 @@
             color: #C62828;
             font-size: 13px;
             margin-top: 8px;
+            margin-bottom: 12px;
             display: none;
+            font-weight: 400;
+            padding: 8px 14px;
+            background: rgba(255,235,238,0.6);
+            border-radius: 10px;
+            border: 1px solid rgba(255,205,210,0.4);
         }
         .error-msg.show { display: block; }
 
@@ -339,18 +458,28 @@
             font-size: 12px;
             color: var(--text-light);
             max-width: 400px;
-            line-height: 1.6;
+            line-height: 1.7;
+            font-weight: 300;
+            opacity: 0.8;
         }
-        .footer-note i { color: var(--pink); }
+        .footer-note i { color: var(--pink); opacity: 0.6; }
 
         @media (max-width: 480px) {
             .auth-card { padding: 30px 20px; margin: 10px; }
             .auth-title { font-size: 22px; }
             .pig-icon { font-size: 56px; }
+            .bg-orb-1 { width: 260px; height: 260px; }
+            .bg-orb-2 { width: 220px; height: 220px; }
+            .bg-orb-3 { width: 180px; height: 180px; }
         }
     </style>
 </head>
 <body>
+    <!-- 柔和渐变光斑 -->
+    <div class="bg-orb bg-orb-1"></div>
+    <div class="bg-orb bg-orb-2"></div>
+    <div class="bg-orb bg-orb-3"></div>
+
     <div class="floating-hearts" id="floatingHearts"></div>
 
     <!-- 授权页 -->
