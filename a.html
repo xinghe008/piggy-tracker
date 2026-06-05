@@ -666,11 +666,11 @@
 
                 // 如果有 SHA，先读取现有数据
                 if (fileSha) {
-                    const res = await fetch(getGithubApiUrl(), {
+                    const readRes = await fetch(getGithubApiUrl(), {
                         headers: { 'Authorization': 'token ' + GITHUB_TOKEN }
                     });
-                    if (res.ok) {
-                        const content = await res.json();
+                    if (readRes.ok) {
+                        const content = await readRes.json();
                         const text = atob(content.content);
                         fileData = JSON.parse(text);
                         fileSha = content.sha;
@@ -691,7 +691,7 @@
                     body.sha = fileSha;
                 }
 
-                const res = await fetch(getGithubApiUrl(), {
+                const writeRes = await fetch(getGithubApiUrl(), {
                     method: 'PUT',
                     headers: {
                         'Authorization': 'token ' + GITHUB_TOKEN,
@@ -700,14 +700,14 @@
                     body: JSON.stringify(body)
                 });
 
-                if (res.ok) {
-                    const data = await res.json();
+                if (writeRes.ok) {
+                    const data = await writeRes.json();
                     fileSha = data.content.sha;
                 } else {
-                    const errData = await res.json().catch(() => ({}));
-                    console.warn('推送失败:', res.status, errData);
+                    const errData = await writeRes.json().catch(() => ({}));
+                    console.warn('推送失败:', writeRes.status, errData);
                     // 如果 409 冲突，重新获取 SHA
-                    if (res.status === 409) {
+                    if (writeRes.status === 409) {
                         await initGitHubFile();
                     }
                 }
