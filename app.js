@@ -112,21 +112,40 @@ function createNewRoom() {
 function initGun() {
     try {
         gun = Gun({
-            peers: ['https://relay.peer.ooo/gun']
+            peers: ['https://relay.peer.ooo/gun'],
+            localStorage: false
         });
         roomNode = gun.get('piggy-tracker-' + roomId);
 
-        // 监听设备数据
-        roomNode.map().on(function(data, key) {
-            if (!key || !data) return;
-            if (key.startsWith('device-')) {
-                handleDeviceUpdate(key.replace('device-', ''), data);
+        // 延迟绑定监听，确保中继服务器连接已建立
+        setTimeout(() => {
+            bindRoomListener();
+        }, 1500);
+
+        // 同时也立即绑定一次（处理本地缓存数据）
+        bindRoomListener();
+
+        // 定时重连检查：如果一直没有设备连接，每10秒重新绑定
+        setInterval(() => {
+            if (Object.keys(devices).length === 0) {
+                console.log('没有设备连接，重新绑定监听...');
+                bindRoomListener();
             }
-        });
+        }, 10000);
+
     } catch (e) {
         console.warn('Gun.js 初始化失败，使用本地模拟模式', e);
         startDemoMode();
     }
+}
+
+function bindRoomListener() {
+    roomNode.map().on(function(data, key) {
+        if (!key || !data) return;
+        if (key.startsWith('device-')) {
+            handleDeviceUpdate(key.replace('device-', ''), data);
+        }
+    });
 }
 
 // ---- 处理设备数据更新 ----
