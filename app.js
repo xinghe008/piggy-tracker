@@ -112,7 +112,7 @@ function createNewRoom() {
 function initGun() {
     try {
         gun = Gun({
-            peers: ['https://gun-manhattan.herokuapp.com/gun']
+            peers: ['https://relay.peer.ooo/gun']
         });
         roomNode = gun.get('piggy-tracker-' + roomId);
 
