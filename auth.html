@@ -459,10 +459,10 @@
         关闭此页面即停止共享
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
     <script>
         // ---- 全局变量 ----
-        let gun, roomNode;
+        let blobId = null;
+        let pushTimer = null;
         let roomId = '';
         let selectedEmoji = '🐷';
         let watchId = null;
@@ -492,7 +492,7 @@
         }
 
         // ---- 开始共享 ----
-        function startSharing() {
+        async function startSharing() {
             const name = document.getElementById('nameInput').value.trim();
             if (!name) {
                 showError('请输入你的昵称哦～');
@@ -510,13 +510,9 @@
                 }
             }
 
-            // 初始化 Gun.js
+            // 初始化 jsonblob
             try {
-                gun = Gun({
-                    peers: ['https://relay.peer.ooo/gun'],
-                    localStorage: false
-                });
-                roomNode = gun.get('piggy-tracker-' + roomId);
+                await getOrCreateBlob();
             } catch (e) {
                 showError('连接失败，请检查网络后重试');
                 return;
@@ -542,6 +538,11 @@
 
                     // 获取电量
                     getBatteryInfo();
+
+                    // 启动定时推送（每5秒）
+                    pushTimer = setInterval(pushData, 5000);
+                    // 首次立即推送一次
+                    pushData();
 
                     // 定时更新
                     updateInterval = setInterval(() => {
@@ -571,28 +572,15 @@
         function startLocationWatch(name) {
             watchId = navigator.geolocation.watchPosition(
                 (pos) => {
-                    const data = {
-                        name: name,
-                        emoji: selectedEmoji,
-                        lat: pos.coords.latitude,
-                        lng: pos.coords.longitude,
-                        battery: currentBattery,
-                        charging: isCharging,
-                        online: true,
-                        lastUpdate: new Date().toISOString(),
-                        speed: pos.coords.speed || 0
-                    };
+                    lastLat = pos.coords.latitude;
+                    lastLng = pos.coords.longitude;
+                    lastSpeed = pos.coords.speed || 0;
 
                     // 逆地理编码获取地址（使用免费 Nominatim）
                     reverseGeocode(pos.coords.latitude, pos.coords.longitude, (address) => {
-                        data.address = address;
-                        sendData(data);
-                        updateStatusUI(data);
+                        lastAddress = address;
+                        updateStatusUI({ address: address });
                     });
-
-                    // 先发送位置数据（不等地址）
-                    data.address = '获取中...';
-                    sendData(data);
                 },
                 (err) => {
                     console.warn('定位更新失败:', err);
@@ -630,11 +618,94 @@
                 });
         }
 
-        // ---- 发送数据到 Gun.js ----
-        function sendData(data) {
-            if (!roomNode || !isSharing) return;
-            const deviceId = 'device-' + getDeviceId();
-            roomNode.get(deviceId).put(data);
+        // ---- jsonblob 通信 ----
+        async function getOrCreateBlob() {
+            const cacheKey = 'piggy-blob-' + roomId;
+            const cached = localStorage.getItem(cacheKey);
+            if (cached) {
+                blobId = cached;
+                // 验证 blob 是否存在
+                try {
+                    const res = await fetch('https://jsonblob.com/api/jsonBlob/' + blobId);
+                    if (res.ok) return;
+                } catch (e) {
+                    // 忽略网络错误，继续使用缓存的 blobId
+                }
+            }
+            // 创建新 blob
+            const res = await fetch('https://jsonblob.com/api/jsonBlob', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ devices: {} })
+            });
+            if (!res.ok) throw new Error('创建 blob 失败');
+            const location = res.headers.get('Location') || res.headers.get('location');
+            if (!location) throw new Error('未获取到 blob ID');
+            blobId = location.split('/').pop();
+            localStorage.setItem(cacheKey, blobId);
+        }
+
+        function buildCurrentData() {
+            return {
+                name: document.getElementById('statusName').textContent,
+                emoji: selectedEmoji,
+                lat: lastLat || 0,
+                lng: lastLng || 0,
+                battery: currentBattery,
+                charging: isCharging,
+                address: lastAddress || '获取中...',
+                online: true,
+                lastUpdate: new Date().toISOString(),
+                speed: lastSpeed || 0
+            };
+        }
+
+        async function pushData() {
+            if (!blobId || !isSharing) return;
+            try {
+                // 读取当前 blob 数据
+                const res = await fetch('https://jsonblob.com/api/jsonBlob/' + blobId);
+                if (!res.ok) return;
+                const blobData = await res.json();
+                if (!blobData.devices) blobData.devices = {};
+
+                // 合并当前设备数据
+                const deviceId = 'device-' + getDeviceId();
+                blobData.devices[deviceId] = buildCurrentData();
+
+                // PUT 回去
+                await fetch('https://jsonblob.com/api/jsonBlob/' + blobId, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(blobData)
+                });
+            } catch (e) {
+                console.warn('推送数据失败:', e);
+            }
+        }
+
+        async function sendOfflineStatus() {
+            if (!blobId) return;
+            try {
+                const res = await fetch('https://jsonblob.com/api/jsonBlob/' + blobId);
+                if (!res.ok) return;
+                const blobData = await res.json();
+                if (!blobData.devices) blobData.devices = {};
+
+                const deviceId = 'device-' + getDeviceId();
+                if (blobData.devices[deviceId]) {
+                    blobData.devices[deviceId].online = false;
+                    blobData.devices[deviceId].lastUpdate = new Date().toISOString();
+                }
+
+                await fetch('https://jsonblob.com/api/jsonBlob/' + blobId, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(blobData)
+                });
+            } catch (e) {
+                console.warn('发送离线状态失败:', e);
+            }
         }
 
         // ---- 获取设备唯一 ID ----
@@ -650,6 +721,10 @@
         // ---- 电量信息 ----
         let currentBattery = 100;
         let isCharging = false;
+        let lastLat = 0;
+        let lastLng = 0;
+        let lastAddress = '';
+        let lastSpeed = 0;
 
         function getBatteryInfo() {
             if ('getBattery' in navigator) {
@@ -697,12 +772,13 @@
                 clearInterval(updateInterval);
                 updateInterval = null;
             }
+            if (pushTimer) {
+                clearInterval(pushTimer);
+                pushTimer = null;
+            }
 
             // 发送离线状态
-            if (roomNode) {
-                const deviceId = 'device-' + getDeviceId();
-                roomNode.get(deviceId).put({ online: false, lastUpdate: new Date().toISOString() });
-            }
+            sendOfflineStatus();
 
             // 刷新页面回到授权页
             window.location.reload();
@@ -734,9 +810,8 @@
 
         // ---- 页面关闭时清理 ----
         window.addEventListener('beforeunload', () => {
-            if (roomNode && isSharing) {
-                const deviceId = 'device-' + getDeviceId();
-                roomNode.get(deviceId).put({ online: false, lastUpdate: new Date().toISOString() });
+            if (blobId && isSharing) {
+                sendOfflineStatus();
             }
         });
 
