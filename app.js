@@ -115,8 +115,8 @@ function createNewRoom() {
 }
 
 // ============================================================
-// GitHub Raw 轮询通信
-// 监控端只读取：通过 raw.githubusercontent.com 轮询 data/{roomId}.json
+// GitHub Pages 轮询通信
+// 监控端只读取：通过 GitHub Pages 轮询 data/{roomId}.json
 // ============================================================
 
 // 初始化同步：启动轮询
@@ -130,27 +130,24 @@ async function initSync() {
     pollData();
 }
 
+// 带超时的 fetch（防止被墙的域名卡住）
+function fetchWithTimeout(url, timeout = 5000) {
+    return Promise.race([
+        fetch(url),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), timeout))
+    ]);
+}
+
 // 轮询获取数据，检测变化
 async function pollData() {
     try {
-        // 优先用 GitHub Pages（国内可访问），回退到 raw.githubusercontent.com
+        // 只用 GitHub Pages URL（国内可访问）
         const baseUrl = window.location.origin + window.location.pathname;
         const pageBase = baseUrl.substring(0, baseUrl.lastIndexOf('/') + 1);
-        const urls = [
-            pageBase + 'data/' + roomId + '.json?t=' + Date.now(),
-            `https://raw.githubusercontent.com/${GITHUB_REPO}/main/data/${roomId}.json?t=${Date.now()}`
-        ];
-        let res = null;
-        for (const url of urls) {
-            try {
-                res = await fetch(url);
-                if (res.ok || res.status === 404) break;
-            } catch (e) {
-                continue;
-            }
-        }
-        if (!res || !res.ok) {
-            if (res && res.status === 404) {
+        const url = pageBase + 'data/' + roomId + '.json?t=' + Date.now();
+        const res = await fetchWithTimeout(url);
+        if (!res.ok) {
+            if (res.status === 404) {
                 // 数据文件还不存在，等待对方连接
                 return;
             }
