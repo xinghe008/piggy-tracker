@@ -1,7 +1,7 @@
 // ============================================================
 // 🐷 甜心小猪捕捉器 - 监控端 (Dashboard)
 // 功能：实时位置追踪、电量监控、历史轨迹回放
-// 通信：Gun.js P2P 实时数据库（无需后端服务器）
+// 通信：jsonblob.com REST API（无需后端服务器）
 // 地图：高德地图 JS API 2.0
 // ============================================================
 
@@ -10,7 +10,8 @@ let map, AMapObj, markers = {}, historyPolyline = null, historyMarkers = [];
 let isHistoryOpen = false, isPlaying = false, playInterval = null;
 let isDarkMap = false;
 let activeDeviceId = null;
-let gun, roomNode;
+let blobId = '';
+let pollTimer = null;
 let roomId = '';
 let devices = {}; // { deviceId: { name, emoji, lat, lng, battery, charging, address, online, lastUpdate, history } }
 let deviceHistory = {}; // { deviceId: [{ lat, lng, time, battery, address }] }
@@ -28,8 +29,8 @@ function init() {
     roomId = params.get('room') || generateRoomId();
     updateRoomDisplay();
 
-    // 初始化 Gun.js
-    initGun();
+    // 初始化 jsonblob.com 同步
+    initSync();
 
     // 初始化地图
     initAMap();
@@ -95,57 +96,93 @@ function createNewRoom() {
         roomId = generateRoomId();
         updateRoomDisplay();
         window.history.replaceState({}, '', '?room=' + roomId);
-        // 重新订阅新房间
-        initGun();
+        // 清除旧的 blobId 缓存，重新创建 blob
+        blobId = '';
+        localStorage.removeItem('piggy-blob-' + roomId);
         devices = {};
         deviceHistory = {};
         Object.values(markers).forEach(m => { if(m && m.setMap) m.setMap(null); });
         markers = {};
         renderSidebar();
+        // 重新初始化同步
+        initSync();
         showToast('新房间已创建！记得分享新的授权链接 🐷');
     }
 }
 
 // ============================================================
-// Gun.js 实时通信
+// jsonblob.com 实时通信
 // ============================================================
-function initGun() {
+
+// 获取或创建 blob：先查 localStorage，没有则 POST 创建新 blob
+async function getOrCreateBlob() {
+    const cacheKey = 'piggy-blob-' + roomId;
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+        blobId = cached;
+        return blobId;
+    }
+
     try {
-        gun = Gun({
-            peers: ['https://relay.peer.ooo/gun'],
-            localStorage: false
+        const res = await fetch('https://jsonblob.com/api/jsonBlob', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ devices: {} })
         });
-        roomNode = gun.get('piggy-tracker-' + roomId);
-
-        // 延迟绑定监听，确保中继服务器连接已建立
-        setTimeout(() => {
-            bindRoomListener();
-        }, 1500);
-
-        // 同时也立即绑定一次（处理本地缓存数据）
-        bindRoomListener();
-
-        // 定时重连检查：如果一直没有设备连接，每10秒重新绑定
-        setInterval(() => {
-            if (Object.keys(devices).length === 0) {
-                console.log('没有设备连接，重新绑定监听...');
-                bindRoomListener();
-            }
-        }, 10000);
-
+        if (!res.ok) throw new Error('创建 blob 失败: ' + res.status);
+        const location = res.headers.get('Location') || '';
+        // Location 格式: https://jsonblob.com/api/jsonBlob/{blobId}
+        blobId = location.split('/').pop();
+        localStorage.setItem(cacheKey, blobId);
+        console.log('新 blob 已创建:', blobId);
+        return blobId;
     } catch (e) {
-        console.warn('Gun.js 初始化失败，使用本地模拟模式', e);
-        startDemoMode();
+        console.error('创建 jsonblob 失败', e);
+        showToast('通信初始化失败，请检查网络 🐷');
+        return null;
     }
 }
 
-function bindRoomListener() {
-    roomNode.map().on(function(data, key) {
-        if (!key || !data) return;
-        if (key.startsWith('device-')) {
-            handleDeviceUpdate(key.replace('device-', ''), data);
+// 初始化同步：获取 blobId 并启动轮询
+async function initSync() {
+    // 停止旧的轮询
+    if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+
+    const id = await getOrCreateBlob();
+    if (!id) return;
+
+    // 启动轮询，每 3 秒 GET blob 数据
+    pollTimer = setInterval(pollData, 3000);
+    // 立即执行一次
+    pollData();
+}
+
+// 轮询获取 blob 数据，检测变化
+async function pollData() {
+    if (!blobId) return;
+
+    try {
+        const res = await fetch('https://jsonblob.com/api/jsonBlob/' + blobId);
+        if (!res.ok) {
+            if (res.status === 404) {
+                // blob 被删除了，重新创建
+                console.warn('blob 不存在，重新创建');
+                blobId = '';
+                localStorage.removeItem('piggy-blob-' + roomId);
+                await getOrCreateBlob();
+            }
+            return;
         }
-    });
+        const data = await res.json();
+        if (data && data.devices) {
+            Object.keys(data.devices).forEach(deviceKey => {
+                const devData = data.devices[deviceKey];
+                handleDeviceUpdate(deviceKey, devData);
+            });
+        }
+    } catch (e) {
+        console.warn('轮询数据失败', e);
+    }
 }
 
 // ---- 处理设备数据更新 ----
@@ -210,29 +247,6 @@ function handleDeviceUpdate(deviceId, data) {
     }
 }
 
-// ---- 演示模式（Gun.js 不可用时） ----
-function startDemoMode() {
-    showToast('演示模式：使用模拟数据 🐷');
-    const demoDevices = [
-        { id: 'demo1', name: '小明', emoji: '👦', lat: 39.9042, lng: 116.4074, battery: 78, address: '北京市东城区天安门广场' },
-        { id: 'demo2', name: '小红', emoji: '👧', lat: 39.9142, lng: 116.3974, battery: 32, charging: true, address: '北京市西城区西单商业街' }
-    ];
-    demoDevices.forEach(d => {
-        handleDeviceUpdate(d.id, d);
-    });
-    // 模拟位置更新
-    setInterval(() => {
-        Object.keys(devices).forEach(id => {
-            const dev = devices[id];
-            dev.lat += (Math.random() - 0.5) * 0.0003;
-            dev.lng += (Math.random() - 0.5) * 0.0003;
-            dev.battery = Math.max(5, dev.battery - Math.random() * 0.3);
-            dev.battery = Math.round(dev.battery);
-            dev.lastUpdate = new Date();
-            handleDeviceUpdate(id, dev);
-        });
-    }, 5000);
-}
 
 // ============================================================
 // 高德地图
