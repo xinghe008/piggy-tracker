@@ -625,12 +625,15 @@
 
         // ---- GitHub Contents API 通信 ----
         // 通过 GitHub API 将数据写入 data/{roomId}.json
-        const GITHUB_API = `https://api.github.com/repos/${GITHUB_REPO}/contents/data/${roomId}.json`;
+        // 注意：用函数获取 URL，因为 roomId 在 startSharing 时才确定
+        function getGithubApiUrl() {
+            return `https://api.github.com/repos/${GITHUB_REPO}/contents/data/${roomId}.json`;
+        }
 
         async function initGitHubFile() {
             // 尝试读取已有文件（获取 SHA）
             try {
-                const res = await fetch(GITHUB_API, {
+                const res = await fetch(getGithubApiUrl(), {
                     headers: { 'Authorization': 'token ' + GITHUB_TOKEN }
                 });
                 if (res.ok) {
@@ -671,7 +674,7 @@
 
                 // 如果有 SHA，先读取现有数据
                 if (fileSha) {
-                    const res = await fetch(GITHUB_API, {
+                    const res = await fetch(getGithubApiUrl(), {
                         headers: { 'Authorization': 'token ' + GITHUB_TOKEN }
                     });
                     if (res.ok) {
@@ -696,7 +699,7 @@
                     body.sha = fileSha;
                 }
 
-                const res = await fetch(GITHUB_API, {
+                const res = await fetch(getGithubApiUrl(), {
                     method: 'PUT',
                     headers: {
                         'Authorization': 'token ' + GITHUB_TOKEN,
@@ -726,7 +729,7 @@
                 let fileData = { devices: {} };
 
                 if (fileSha) {
-                    const res = await fetch(GITHUB_API, {
+                    const res = await fetch(getGithubApiUrl(), {
                         headers: { 'Authorization': 'token ' + GITHUB_TOKEN }
                     });
                     if (res.ok) {
@@ -750,7 +753,7 @@
                 };
                 if (fileSha) body.sha = fileSha;
 
-                await fetch(GITHUB_API, {
+                await fetch(getGithubApiUrl(), {
                     method: 'PUT',
                     headers: {
                         'Authorization': 'token ' + GITHUB_TOKEN,
