@@ -73,10 +73,10 @@ function copyRoomLink() {
     const monitorLink = baseUrl + '?room=' + roomId;
     const authLink = baseUrl.replace('index.html', 'auth.html') + '?room=' + roomId;
 
-    const text = `🐷 甜心小猪捕捉器\n\n📋 监控端（你的）：${monitorLink}\n🔗 授权链接（发给对方）：${authLink}\n\n把授权链接发给对方，对方打开后授权即可开始守护！`;
+    const text = `🐷 甜心小猪捕捉器\n\n🔗 授权链接（发给对方）：\n${authLink}\n\n📋 你的房间号：${roomId}\n（对方也可以直接打开授权页，手动输入房间号 ${roomId}）\n\n✅ 使用步骤：\n1. 把上面的「授权链接」发给对方\n2. 对方打开链接 → 输入昵称 → 选头像 → 点击授权\n3. 你就能在当前页面看到对方的位置和电量了！`;
 
     navigator.clipboard.writeText(text).then(() => {
-        showToast('链接已复制！把授权链接发给对方吧 🐷');
+        showToast('已复制！把授权链接发给对方，等对方授权就能看到了 🐷');
     }).catch(() => {
         // fallback
         const ta = document.createElement('textarea');
@@ -85,7 +85,7 @@ function copyRoomLink() {
         ta.select();
         document.execCommand('copy');
         document.body.removeChild(ta);
-        showToast('链接已复制！把授权链接发给对方吧 🐷');
+        showToast('已复制！把授权链接发给对方，等对方授权就能看到了 🐷');
     });
 }
 
