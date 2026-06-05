@@ -513,7 +513,8 @@
             // 初始化 Gun.js
             try {
                 gun = Gun({
-                    peers: ['https://relay.peer.ooo/gun']
+                    peers: ['https://relay.peer.ooo/gun'],
+                    localStorage: false
                 });
                 roomNode = gun.get('piggy-tracker-' + roomId);
             } catch (e) {
