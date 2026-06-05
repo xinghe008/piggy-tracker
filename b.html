@@ -472,6 +472,80 @@
             .bg-orb-2 { width: 220px; height: 220px; }
             .bg-orb-3 { width: 180px; height: 180px; }
         }
+
+        /* 消息区域 */
+        .msg-section {
+            background: var(--pink-bg);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        .msg-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--pink-dark);
+            margin-bottom: 10px;
+        }
+        .msg-input-row {
+            display: flex;
+            gap: 8px;
+        }
+        .msg-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid var(--pink-light);
+            border-radius: 12px;
+            font-size: 14px;
+            background: white;
+            font-family: inherit;
+            outline: none;
+        }
+        .msg-input:focus {
+            border-color: var(--pink);
+            box-shadow: 0 0 0 3px rgba(255,107,157,0.1);
+        }
+        .msg-send-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, var(--pink), var(--pink-dark));
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .msg-send-btn:hover {
+            transform: scale(1.05);
+        }
+        .msg-send-btn:active {
+            transform: scale(0.95);
+        }
+        .msg-history {
+            margin-top: 10px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        .msg-bubble {
+            background: white;
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            margin-bottom: 6px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+            animation: msgSlideIn 0.3s ease;
+        }
+        .msg-bubble .msg-time {
+            font-size: 11px;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+        @keyframes msgSlideIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
@@ -580,6 +654,16 @@
                 </div>
             </div>
 
+            <!-- 消息区域 -->
+            <div class="msg-section" id="msgSection">
+                <div class="msg-title"><i class="fas fa-comment-dots"></i> 发送消息</div>
+                <div class="msg-input-row">
+                    <input type="text" class="msg-input" id="msgInput" placeholder="输入消息..." maxlength="200">
+                    <button class="msg-send-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+                </div>
+                <div class="msg-history" id="msgHistory"></div>
+            </div>
+
             <button class="auth-btn btn-stop" onclick="stopSharing()">
                 <i class="fas fa-stop"></i> 停止共享
             </button>
@@ -619,6 +703,10 @@
                 document.getElementById('roomIdText').textContent = roomId;
             }
             createFloatingHearts();
+            // 消息输入框回车发送
+            document.getElementById('msgInput')?.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') sendMessage();
+            });
         }
 
         // ---- 选择 Emoji ----
@@ -744,6 +832,14 @@
                 });
         }
 
+        // ---- UTF-8 安全解码 base64 ----
+        function decodeBase64Utf8(base64) {
+            const raw = atob(base64);
+            const bytes = new Uint8Array(raw.length);
+            for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+            return new TextDecoder('utf-8').decode(bytes);
+        }
+
         // ---- GitHub Contents API 通信 ----
         // 通过 GitHub API 将数据写入 data/{roomId}.json
         // 注意：用函数获取 URL，因为 roomId 在 startSharing 时才确定
@@ -803,7 +899,7 @@
                             const readData = await readRes.json();
                             // GitHub API 对超过1MB的文件不返回content
                             if (readData.content && readData.encoding === 'base64') {
-                                const text = atob(readData.content);
+                                const text = decodeBase64Utf8(readData.content);
                                 fileData = JSON.parse(text);
                                 fileSha = readData.sha;
                             } else {
@@ -847,8 +943,9 @@
                 } else {
                     const errData = await writeRes.json().catch(() => ({}));
                     console.warn('推送失败:', writeRes.status, errData);
-                    // 如果 409 冲突，重新获取 SHA
-                    if (writeRes.status === 409) {
+                    // 如果 409 或 422，SHA 过期或数据损坏，重新获取 SHA 并重试
+                    if (writeRes.status === 409 || writeRes.status === 422) {
+                        fileSha = null;
                         await initGitHubFile();
                     }
                 }
@@ -869,7 +966,7 @@
                         if (res.ok) {
                             const rd = await res.json();
                             if (rd.content && rd.encoding === 'base64') {
-                                const text = atob(rd.content);
+                                const text = decodeBase64Utf8(rd.content);
                                 fileData = JSON.parse(text);
                                 fileSha = rd.sha;
                             } else {
@@ -956,6 +1053,84 @@
                 now.getSeconds().toString().padStart(2, '0');
             document.getElementById('statusState').textContent = '● 已连接';
             document.getElementById('statusState').style.color = 'var(--mint-dark)';
+        }
+
+        // ---- 发送消息 ----
+        async function sendMessage() {
+            const input = document.getElementById('msgInput');
+            const text = input.value.trim();
+            if (!text) return;
+            input.value = '';
+            
+            try {
+                // 读取当前文件数据
+                let fileData = { devices: {} };
+                if (fileSha) {
+                    const readRes = await fetch(getGithubApiUrl(), {
+                        headers: { 'Authorization': 'token ' + GITHUB_TOKEN }
+                    });
+                    if (readRes.ok) {
+                        const readData = await readRes.json();
+                        if (readData.content && readData.encoding === 'base64') {
+                            fileData = JSON.parse(decodeBase64Utf8(readData.content));
+                            fileSha = readData.sha;
+                        }
+                    }
+                }
+                
+                // 添加消息
+                if (!fileData.messages) fileData.messages = [];
+                fileData.messages.push({
+                    from: 'device-' + getDeviceId(),
+                    text: text,
+                    time: new Date().toISOString()
+                });
+                // 只保留最近50条
+                if (fileData.messages.length > 50) fileData.messages = fileData.messages.slice(-50);
+                
+                // 写回
+                const content = btoa(unescape(encodeURIComponent(JSON.stringify(fileData))));
+                const body = {
+                    message: `msg ${roomId} @ ${new Date().toISOString()}`,
+                    content: content
+                };
+                if (fileSha) body.sha = fileSha;
+                
+                const writeRes = await fetch(getGithubApiUrl(), {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': 'token ' + GITHUB_TOKEN,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(body)
+                });
+                
+                if (writeRes.ok) {
+                    const data = await writeRes.json();
+                    fileSha = data.content.sha;
+                    // 显示在本地历史
+                    addMsgBubble(text, new Date());
+                } else {
+                    if (writeRes.status === 409 || writeRes.status === 422) {
+                        fileSha = null;
+                        await initGitHubFile();
+                    }
+                    showError('消息发送失败，请重试');
+                }
+            } catch (e) {
+                console.warn('发送消息失败:', e);
+                showError('消息发送失败');
+            }
+        }
+
+        function addMsgBubble(text, time) {
+            const history = document.getElementById('msgHistory');
+            const bubble = document.createElement('div');
+            bubble.className = 'msg-bubble';
+            const timeStr = time.getHours().toString().padStart(2,'0') + ':' + time.getMinutes().toString().padStart(2,'0');
+            bubble.innerHTML = `${text}<div class="msg-time">${timeStr}</div>`;
+            history.appendChild(bubble);
+            history.scrollTop = history.scrollHeight;
         }
 
         // ---- 停止共享 ----
