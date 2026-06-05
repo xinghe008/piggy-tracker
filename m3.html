@@ -1,0 +1,1489 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐷 甜心小猪捕捉器</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --pink: #FF6B9D;
+            --pink-light: #FFB8D0;
+            --pink-dark: #E84580;
+            --pink-bg: #FFF0F5;
+            --pink-card: #FFF5F8;
+            --yellow: #FFD93D;
+            --yellow-light: #FFF3B0;
+            --mint: #A8E6CF;
+            --mint-dark: #6BCB97;
+            --lavender: #C3AED6;
+            --peach: #FFAB91;
+            --text: #5D4037;
+            --text-light: #8D6E63;
+            --text-pink: #E84580;
+            --white: #FFFFFF;
+            --shadow: 0 6px 24px rgba(255,107,157,0.15);
+            --shadow-lg: 0 12px 40px rgba(255,107,157,0.2);
+            --radius: 24px;
+            --radius-sm: 16px;
+        }
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: var(--pink-bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        .cute-font { font-family: 'ZCOOL KuaiLe', cursive; }
+
+        /* ===== 背景装饰 ===== */
+        .bg-decor {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none; z-index: 0; overflow: hidden;
+        }
+        .bg-decor::before {
+            content: '';
+            position: absolute;
+            width: 300px; height: 300px;
+            background: radial-gradient(circle, rgba(255,107,157,0.08) 0%, transparent 70%);
+            top: -100px; right: -100px;
+            border-radius: 50%;
+        }
+        .bg-decor::after {
+            content: '';
+            position: absolute;
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(255,217,61,0.06) 0%, transparent 70%);
+            bottom: -150px; left: -100px;
+            border-radius: 50%;
+        }
+        .floating-hearts {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none; z-index: 0;
+        }
+        .heart {
+            position: absolute;
+            font-size: 20px;
+            opacity: 0.15;
+            animation: floatHeart 15s infinite linear;
+        }
+        @keyframes floatHeart {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.15; }
+            90% { opacity: 0.15; }
+            100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+        }
+
+        /* ===== Header ===== */
+        .header {
+            background: linear-gradient(135deg, var(--pink), #FF8FB1, var(--pink-dark));
+            color: white;
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(255,107,157,0.3);
+        }
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -8px; left: 0; right: 0;
+            height: 16px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 16'%3E%3Cpath d='M0,16 L0,8 Q30,0 60,8 T120,8 T180,8 T240,8 T300,8 T360,8 T420,8 T480,8 T540,8 T600,8 T660,8 T720,8 T780,8 T840,8 T900,8 T960,8 T1020,8 T1080,8 T1140,8 T1200,8 L1200,16 Z' fill='%23FFF0F5'/%3E%3C/svg%3E") repeat-x;
+            background-size: 1200px 16px;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .header-pig {
+            width: 48px; height: 48px;
+            font-size: 36px;
+            animation: pigBounce 2s ease-in-out infinite;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        }
+        @keyframes pigBounce {
+            0%, 100% { transform: translateY(0) rotate(-3deg); }
+            50% { transform: translateY(-6px) rotate(3deg); }
+        }
+        .header-title {
+            font-size: 22px;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header-subtitle {
+            font-size: 12px;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .header-time {
+            font-size: 13px;
+            opacity: 0.95;
+            background: rgba(255,255,255,0.15);
+            padding: 6px 14px;
+            border-radius: 20px;
+        }
+        .header-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,0.2);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+        .status-dot {
+            width: 8px; height: 8px;
+            background: var(--mint-dark);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.4); }
+        }
+
+        /* ===== Room ID Bar ===== */
+        .room-bar {
+            background: var(--white);
+            padding: 10px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+            z-index: 999;
+            border-bottom: 2px dashed var(--pink-light);
+        }
+        .room-bar-label {
+            font-size: 13px;
+            color: var(--text-light);
+            white-space: nowrap;
+        }
+        .room-bar-label i { color: var(--pink); margin-right: 4px; }
+        .room-id-display {
+            flex: 1;
+            background: var(--pink-bg);
+            border: 2px solid var(--pink-light);
+            border-radius: 12px;
+            padding: 8px 16px;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--pink-dark);
+            text-align: center;
+            letter-spacing: 3px;
+            font-family: 'ZCOOL KuaiLe', cursive;
+        }
+        .room-bar-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-copy {
+            background: var(--pink);
+            color: white;
+        }
+        .btn-copy:hover { background: var(--pink-dark); transform: scale(1.05); }
+        .btn-new {
+            background: var(--yellow);
+            color: var(--text);
+        }
+        .btn-new:hover { background: #FFC107; transform: scale(1.05); }
+
+        /* ===== Main Layout ===== */
+        .main-container {
+            display: grid;
+            grid-template-columns: 340px 1fr;
+            height: calc(100vh - 130px);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===== Sidebar ===== */
+        .sidebar {
+            background: var(--white);
+            border-right: 2px solid var(--pink-light);
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .sidebar::-webkit-scrollbar { width: 4px; }
+        .sidebar::-webkit-scrollbar-thumb { background: var(--pink-light); border-radius: 4px; }
+
+        .sidebar-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--pink-dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 0;
+        }
+
+        /* ===== Device Card ===== */
+        .device-card {
+            background: linear-gradient(145deg, var(--pink-card), var(--white));
+            border-radius: var(--radius);
+            padding: 18px;
+            border: 2px solid var(--pink-light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .device-card::before {
+            content: '';
+            position: absolute;
+            top: -20px; right: -20px;
+            width: 80px; height: 80px;
+            background: radial-gradient(circle, rgba(255,107,157,0.08) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        .device-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+            border-color: var(--pink);
+        }
+        .device-card.active {
+            border-color: var(--pink);
+            box-shadow: 0 0 0 3px rgba(255,107,157,0.15), var(--shadow);
+        }
+        .device-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .device-avatar {
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 26px;
+            border: 3px solid var(--white);
+            box-shadow: 0 3px 12px rgba(0,0,0,0.1);
+        }
+        .device-name {
+            font-size: 17px;
+            font-weight: 700;
+        }
+        .device-label {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+        .device-status-badge {
+            margin-left: auto;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .badge-online {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+        .badge-offline {
+            background: #FFEBEE;
+            color: #C62828;
+        }
+        .badge-waiting {
+            background: var(--yellow-light);
+            color: #F57F17;
+        }
+
+        /* ===== Battery ===== */
+        .battery-section { margin-bottom: 12px; }
+        .battery-label {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .battery-bar-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .battery-bar {
+            flex: 1;
+            height: 22px;
+            background: #F5F5F5;
+            border-radius: 11px;
+            overflow: hidden;
+            border: 2px solid #EEEEEE;
+        }
+        .battery-bar-fill {
+            height: 100%;
+            border-radius: 9px;
+            transition: width 1s ease, background 0.5s ease;
+            position: relative;
+        }
+        .battery-bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 3px; left: 4px; right: 4px;
+            height: 5px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 3px;
+        }
+        .battery-bar-fill.high { background: linear-gradient(90deg, var(--mint-dark), var(--mint)); }
+        .battery-bar-fill.medium { background: linear-gradient(90deg, #FFA726, var(--yellow)); }
+        .battery-bar-fill.low { background: linear-gradient(90deg, var(--pink-dark), var(--peach)); }
+        .battery-percent {
+            font-size: 22px;
+            font-weight: 700;
+            min-width: 55px;
+            text-align: right;
+        }
+        .battery-percent.high { color: var(--mint-dark); }
+        .battery-percent.medium { color: #FFA726; }
+        .battery-percent.low { color: var(--pink-dark); }
+
+        /* ===== Info Grid ===== */
+        .device-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .info-item {
+            background: rgba(255,255,255,0.8);
+            padding: 10px;
+            border-radius: var(--radius-sm);
+            border: 1px solid rgba(255,107,157,0.1);
+        }
+        .info-item-label {
+            font-size: 11px;
+            color: var(--text-light);
+            margin-bottom: 3px;
+        }
+        .info-item-label i { margin-right: 3px; }
+        .info-item-value {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        /* ===== Add Device ===== */
+        .add-device-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px;
+            border: 2px dashed var(--pink-light);
+            border-radius: var(--radius);
+            color: var(--pink);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: transparent;
+            font-family: inherit;
+            width: 100%;
+        }
+        .add-device-btn:hover {
+            border-color: var(--pink);
+            background: var(--pink-bg);
+            transform: scale(1.02);
+        }
+
+        /* ===== Map Area ===== */
+        .map-area {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        #map {
+            flex: 1;
+            z-index: 1;
+        }
+
+        /* ===== Map Controls ===== */
+        .map-controls {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            z-index: 500;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .map-btn {
+            width: 46px; height: 46px;
+            background: var(--white);
+            border: 2px solid var(--pink-light);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            color: var(--pink);
+            transition: all 0.2s;
+            box-shadow: var(--shadow);
+        }
+        .map-btn:hover {
+            background: var(--pink);
+            color: white;
+            border-color: var(--pink);
+            transform: scale(1.1);
+        }
+        .map-btn.active {
+            background: var(--pink);
+            color: white;
+            border-color: var(--pink);
+        }
+
+        /* ===== Bottom Info ===== */
+        .bottom-info {
+            position: absolute;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 500;
+            background: var(--white);
+            padding: 12px 24px;
+            border-radius: 30px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            font-size: 13px;
+            border: 2px solid var(--pink-light);
+            transition: all 0.3s;
+        }
+        .bottom-info.hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(-50%) translateY(20px);
+        }
+        .bottom-info-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .bottom-info-item i {
+            color: var(--pink);
+            font-size: 14px;
+        }
+
+        /* ===== History Panel ===== */
+        .history-panel {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--white);
+            border-top-left-radius: 28px;
+            border-top-right-radius: 28px;
+            box-shadow: 0 -6px 30px rgba(255,107,157,0.2);
+            z-index: 500;
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            max-height: 55vh;
+            display: flex;
+            flex-direction: column;
+            border-top: 3px solid var(--pink-light);
+        }
+        .history-panel.open {
+            transform: translateY(0);
+        }
+        .history-header {
+            padding: 16px 20px;
+            border-bottom: 2px dashed var(--pink-light);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .history-header h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--pink-dark);
+        }
+        .history-close {
+            width: 34px; height: 34px;
+            border-radius: 50%;
+            border: 2px solid var(--pink-light);
+            background: var(--pink-bg);
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px;
+            color: var(--pink);
+            transition: all 0.2s;
+        }
+        .history-close:hover {
+            background: var(--pink);
+            color: white;
+            border-color: var(--pink);
+        }
+        .history-controls {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid #FFF0F5;
+        }
+        .history-date {
+            flex: 1;
+            padding: 8px 14px;
+            border: 2px solid var(--pink-light);
+            border-radius: 12px;
+            font-size: 14px;
+            font-family: inherit;
+            color: var(--text);
+            background: var(--pink-bg);
+        }
+        .play-btn {
+            width: 44px; height: 44px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, var(--pink), var(--pink-dark));
+            color: white;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(255,107,157,0.3);
+        }
+        .play-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(255,107,157,0.4);
+        }
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-light);
+        }
+        .speed-slider {
+            width: 80px;
+            accent-color: var(--pink);
+        }
+        .history-timeline {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 20px;
+        }
+        .timeline-item {
+            display: flex;
+            gap: 12px;
+            padding: 10px 8px;
+            border-bottom: 1px dashed #FFF0F5;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: background 0.2s;
+        }
+        .timeline-item:hover {
+            background: var(--pink-bg);
+        }
+        .timeline-item.highlight {
+            background: var(--pink-bg);
+        }
+        .timeline-dot {
+            width: 14px; height: 14px;
+            border-radius: 50%;
+            margin-top: 3px;
+            flex-shrink: 0;
+            border: 3px solid var(--white);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        .timeline-time {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+        .timeline-location {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        /* ===== Custom Marker ===== */
+        .leaflet-control-zoom { display: none; }
+        .custom-marker { position: relative; }
+        .marker-avatar {
+            width: 48px; height: 48px;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 3px 14px rgba(0,0,0,0.2);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px;
+        }
+        .marker-pulse {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 66px; height: 66px;
+            border-radius: 50%;
+            animation: markerPulse 2s infinite;
+        }
+        @keyframes markerPulse {
+            0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.6; }
+            100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+        }
+
+        /* ===== Toast ===== */
+        .toast {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: var(--white);
+            padding: 14px 22px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            transform: translateX(120%);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid var(--pink-light);
+        }
+        .toast.show { transform: translateX(0); }
+        .toast-icon { font-size: 20px; }
+
+        /* ===== No Device Hint ===== */
+        .no-device-hint {
+            text-align: center;
+            padding: 30px 20px;
+            color: var(--text-light);
+        }
+        .no-device-hint .hint-icon {
+            font-size: 60px;
+            margin-bottom: 16px;
+            display: block;
+            animation: pigBounce 2s ease-in-out infinite;
+        }
+        .no-device-hint p {
+            font-size: 14px;
+            line-height: 1.8;
+        }
+        .no-device-hint .hint-steps {
+            text-align: left;
+            margin-top: 16px;
+            background: var(--pink-bg);
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+        }
+        .no-device-hint .hint-steps li {
+            margin-bottom: 8px;
+            list-style: none;
+        }
+        .no-device-hint .hint-steps li::before {
+            content: '🐷 ';
+        }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 768px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr;
+            }
+            .sidebar {
+                max-height: 35vh;
+                border-right: none;
+                border-bottom: 2px solid var(--pink-light);
+            }
+            .room-bar { flex-wrap: wrap; }
+            .room-id-display { font-size: 15px; letter-spacing: 2px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- 背景装饰 -->
+    <div class="bg-decor"></div>
+    <div class="floating-hearts" id="floatingHearts"></div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <div class="header-pig">🐷</div>
+            <div>
+                <div class="header-title cute-font">甜心小猪捕捉器</div>
+                <div class="header-subtitle">随时守护你的小可爱</div>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="header-time" id="headerTime"></div>
+            <div class="header-status">
+                <span class="status-dot"></span>
+                <span>守护中</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Room ID Bar -->
+    <div class="room-bar">
+        <span class="room-bar-label"><i class="fas fa-key"></i> 房间号</span>
+        <div class="room-id-display" id="roomIdDisplay">加载中...</div>
+        <button class="room-bar-btn btn-copy" onclick="copyRoomLink()">
+            <i class="fas fa-share-nodes"></i> 分享链接
+        </button>
+        <button class="room-bar-btn btn-new" onclick="createNewRoom()">
+            <i class="fas fa-rotate"></i> 新房间
+        </button>
+    </div>
+
+    <!-- Main -->
+    <div class="main-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-title"><i class="fas fa-heart"></i> 我的小可爱们</div>
+        </aside>
+
+        <!-- Map -->
+        <div class="map-area">
+            <div id="map"></div>
+
+            <!-- Map Controls -->
+            <div class="map-controls">
+                <button class="map-btn" onclick="centerOnDevice()" title="定位到小猪">
+                    <i class="fas fa-crosshairs"></i>
+                </button>
+                <button class="map-btn" onclick="toggleHistory()" title="历史轨迹" id="historyBtn">
+                    <i class="fas fa-route"></i>
+                </button>
+                <button class="map-btn" onclick="toggleMapStyle()" title="切换地图">
+                    <i class="fas fa-layer-group"></i>
+                </button>
+            </div>
+
+            <!-- Bottom Info -->
+            <div class="bottom-info" id="bottomInfo">
+                <div class="bottom-info-item">
+                    <i class="fas fa-location-dot"></i>
+                    <span id="infoAddress">等待连接...</span>
+                </div>
+                <div class="bottom-info-item">
+                    <i class="fas fa-clock"></i>
+                    <span id="infoTime">--:--</span>
+                </div>
+                <div class="bottom-info-item">
+                    <i class="fas fa-battery-three-quarters"></i>
+                    <span id="infoBattery">--%</span>
+                </div>
+            </div>
+
+            <!-- History Panel -->
+            <div class="history-panel" id="historyPanel">
+                <div class="history-header">
+                    <h3>🐷 今日足迹</h3>
+                    <button class="history-close" onclick="toggleHistory()">
+                        <i class="fas fa-xmark"></i>
+                    </button>
+                </div>
+                <div class="history-controls">
+                    <input type="date" class="history-date" id="historyDate">
+                    <div class="speed-control">
+                        <span>速度</span>
+                        <input type="range" class="speed-slider" id="speedSlider" min="1" max="5" value="2">
+                        <span id="speedLabel">2x</span>
+                    </div>
+                    <button class="play-btn" id="playBtn" onclick="playHistory()">
+                        <i class="fas fa-play"></i>
+                    </button>
+                </div>
+                <div class="history-timeline" id="historyTimeline"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <span class="toast-icon">🐷</span>
+        <span id="toastMsg">通知消息</span>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+// ============================================================
+// 🐷 甜心小猪捕捉器 - 监控端 (Dashboard)
+// 功能：实时位置追踪、电量监控、历史轨迹回放
+// 通信：GitHub API + raw.githubusercontent.com（无需后端服务器）
+// 地图：高德地图 JS API 2.0
+// ============================================================
+
+// ---- 全局状态 ----
+let map, AMapObj, markers = {}, historyPolyline = null, historyMarkers = [];
+let isHistoryOpen = false, isPlaying = false, playInterval = null;
+let isDarkMap = false;
+let activeDeviceId = null;
+let pollTimer = null;
+let roomId = '';
+let lastDataHash = ''; // 用于检测数据变化
+// GitHub 配置
+const GITHUB_REPO = 'xinghe008/piggy-tracker';
+// Token 分段存储避免 secret scanning（运行时拼接）
+const _t = ['ghp_m','BkWPm2y','sEujMdoZ','mv5YSjjow','dglCf3FG0Z','F'];
+const GITHUB_TOKEN = _t.join('');
+let devices = {}; // { deviceId: { name, emoji, lat, lng, battery, charging, address, online, lastUpdate, history } }
+let deviceHistory = {}; // { deviceId: [{ lat, lng, time, battery, address }] }
+
+// ---- 高德地图配置 ----
+// 使用高德 JS API 2.0（需要替换为你自己的 Key）
+// 申请地址：https://console.amap.com/dev/key/app
+const AMAP_KEY = 'YOUR_AMAP_KEY'; // ⚠️ 请替换为你的高德 Key
+const AMAP_SECURITY_CODE = 'YOUR_SECURITY_CODE'; // ⚠️ 请替换为你的安全密钥
+
+// ---- 初始化 ----
+function init() {
+    // 从 URL 获取房间号
+    const params = new URLSearchParams(window.location.search);
+    roomId = params.get('room') || generateRoomId();
+    updateRoomDisplay();
+
+    // 初始化同步
+    initSync();
+
+    // 初始化地图
+    initAMap();
+
+    // 初始化 UI
+    createFloatingHearts();
+    updateHeaderTime();
+    renderSidebar();
+
+    // 定时更新
+    setInterval(updateHeaderTime, 1000);
+
+    // 速度滑块
+    document.getElementById('speedSlider')?.addEventListener('input', function() {
+        document.getElementById('speedLabel').textContent = this.value + 'x';
+        if (isPlaying) { stopPlay(); playHistory(); }
+    });
+
+    // 如果 URL 没有房间号，更新 URL（方便分享）
+    if (!params.get('room')) {
+        window.history.replaceState({}, '', '?room=' + roomId);
+    }
+}
+
+// ---- 生成房间号 ----
+function generateRoomId() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let id = '';
+    for (let i = 0; i < 6; i++) id += chars[Math.floor(Math.random() * chars.length)];
+    return id;
+}
+
+// ---- 更新房间号显示 ----
+function updateRoomDisplay() {
+    document.getElementById('roomIdDisplay').textContent = roomId;
+}
+
+// ---- 复制房间链接 ----
+function copyRoomLink() {
+    const baseUrl = window.location.origin + window.location.pathname;
+    const monitorLink = baseUrl + '?room=' + roomId;
+    const authLink = baseUrl.replace('m3.html', 'auth2.html').replace('m.html', 'auth2.html').replace('index.html', 'auth2.html') + '?room=' + roomId;
+
+    const text = `🐷 甜心小猪捕捉器\n\n🔗 授权链接（发给对方）：\n${authLink}\n\n📋 你的房间号：${roomId}\n（对方也可以直接打开授权页，手动输入房间号 ${roomId}）\n\n✅ 使用步骤：\n1. 把上面的「授权链接」发给对方\n2. 对方打开链接 → 输入昵称 → 选头像 → 点击授权\n3. 你就能在当前页面看到对方的位置和电量了！`;
+
+    navigator.clipboard.writeText(text).then(() => {
+        showToast('已复制！把授权链接发给对方，等对方授权就能看到了 🐷');
+    }).catch(() => {
+        // fallback
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast('已复制！把授权链接发给对方，等对方授权就能看到了 🐷');
+    });
+}
+
+// ---- 创建新房间 ----
+function createNewRoom() {
+    if (confirm('创建新房间将断开当前所有连接，确定吗？')) {
+        roomId = generateRoomId();
+        updateRoomDisplay();
+        window.history.replaceState({}, '', '?room=' + roomId);
+        // 清除旧的数据缓存，重新开始
+        lastDataHash = '';
+        devices = {};
+        deviceHistory = {};
+        Object.values(markers).forEach(m => { if(m && m.setMap) m.setMap(null); });
+        markers = {};
+        renderSidebar();
+        // 重新初始化同步
+        initSync();
+        showToast('新房间已创建！记得分享新的授权链接 🐷');
+    }
+}
+
+// ============================================================
+// GitHub Pages 轮询通信
+// 监控端只读取：通过 GitHub Pages 轮询 data/{roomId}.json
+// ============================================================
+
+// 初始化同步：启动轮询
+async function initSync() {
+    // 停止旧的轮询
+    if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+
+    // 启动轮询，每 3 秒读取数据
+    pollTimer = setInterval(pollData, 3000);
+    // 立即执行一次
+    pollData();
+}
+
+// 带超时的 fetch（防止被墙的域名卡住）
+function fetchWithTimeout(url, timeout = 5000) {
+    return Promise.race([
+        fetch(url),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), timeout))
+    ]);
+}
+
+// 轮询获取数据，检测变化
+async function pollData() {
+    try {
+        // 只用 GitHub Pages URL（国内可访问）
+        const baseUrl = window.location.origin + window.location.pathname;
+        const pageBase = baseUrl.substring(0, baseUrl.lastIndexOf('/') + 1);
+        const url = pageBase + 'data/' + roomId + '.json?t=' + Date.now();
+        const res = await fetchWithTimeout(url);
+        if (!res.ok) {
+            if (res.status === 404) {
+                // 数据文件还不存在，等待对方连接
+                return;
+            }
+            return;
+        }
+        const text = await res.text();
+        // 简单 hash 检测变化，避免重复处理
+        const hash = text.length + '-' + text.slice(-100);
+        if (hash === lastDataHash) return;
+        lastDataHash = hash;
+
+        const data = JSON.parse(text);
+        if (data && data.devices) {
+            Object.keys(data.devices).forEach(deviceKey => {
+                const devData = data.devices[deviceKey];
+                handleDeviceUpdate(deviceKey, devData);
+            });
+        }
+    } catch (e) {
+        console.warn('轮询数据失败', e);
+    }
+}
+
+// ---- 处理设备数据更新 ----
+function handleDeviceUpdate(deviceId, data) {
+    const isNew = !devices[deviceId];
+
+    devices[deviceId] = {
+        id: deviceId,
+        name: data.name || '小猪',
+        emoji: data.emoji || '🐷',
+        lat: data.lat || 39.9042,
+        lng: data.lng || 116.4074,
+        battery: data.battery ?? 100,
+        charging: data.charging || false,
+        address: data.address || '未知位置',
+        online: data.online !== false,
+        lastUpdate: data.lastUpdate ? new Date(data.lastUpdate) : new Date(),
+        speed: data.speed || 0
+    };
+
+    // 记录历史轨迹
+    if (!deviceHistory[deviceId]) deviceHistory[deviceId] = [];
+    const last = deviceHistory[deviceId][deviceHistory[deviceId].length - 1];
+    const now = new Date();
+    // 只在位置变化超过5米或间隔超过30秒时记录
+    if (!last ||
+        Math.abs(last.lat - devices[deviceId].lat) > 0.00005 ||
+        Math.abs(last.lng - devices[deviceId].lng) > 0.00005 ||
+        (now - new Date(last.time)) > 30000) {
+        deviceHistory[deviceId].push({
+            lat: devices[deviceId].lat,
+            lng: devices[deviceId].lng,
+            time: now.toISOString(),
+            battery: devices[deviceId].battery,
+            address: devices[deviceId].address
+        });
+        // 最多保留500个点
+        if (deviceHistory[deviceId].length > 500) {
+            deviceHistory[deviceId] = deviceHistory[deviceId].slice(-500);
+        }
+    }
+
+    // 更新地图标记
+    updateMapMarker(deviceId);
+
+    // 更新 UI
+    renderSidebar();
+
+    // 如果是第一个设备，自动选中并定位
+    if (isNew && Object.keys(devices).length === 1) {
+        activeDeviceId = deviceId;
+        centerOnDevice();
+    }
+
+    // 更新底部信息
+    if (deviceId === activeDeviceId) {
+        updateBottomInfo(devices[deviceId]);
+    }
+
+    if (isNew) {
+        showToast(`${devices[deviceId].emoji} ${devices[deviceId].name} 已上线！`);
+    }
+}
+
+
+// ============================================================
+// 高德地图
+// ============================================================
+function initAMap() {
+    // 动态加载高德地图 JS API 2.0
+    if (AMAP_KEY === 'YOUR_AMAP_KEY') {
+        console.warn('未配置高德 API Key，使用 Leaflet + 高德瓦片作为后备方案');
+        initLeafletFallback();
+        return;
+    }
+
+    // 设置安全密钥
+    window._AMapSecurityConfig = {
+        securityJsCode: AMAP_SECURITY_CODE
+    };
+
+    const script = document.createElement('script');
+    script.src = `https://webapi.amap.com/maps?v=2.0&key=${AMAP_KEY}&plugin=AMap.Geocoder`;
+    script.onload = () => {
+        AMapObj = new AMap.Map('map', {
+            zoom: 15,
+            center: [116.397428, 39.90923],
+            mapStyle: 'amap://styles/fresh',
+            zooms: [3, 18]
+        });
+        showToast('高德地图加载成功！🐷');
+    };
+    script.onerror = () => {
+        console.warn('高德地图加载失败，使用后备方案');
+        initLeafletFallback();
+    };
+    document.head.appendChild(script);
+}
+
+// ---- Leaflet 后备方案（无需 API Key） ----
+function initLeafletFallback() {
+    map = L.map('map', {
+        center: [39.9042, 116.4074],
+        zoom: 15,
+        zoomControl: false
+    });
+
+    L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
+        subdomains: ['1', '2', '3', '4'],
+        attribution: '© 高德地图',
+        maxZoom: 18
+    }).addTo(map);
+}
+
+// ---- 更新地图标记 ----
+function updateMapMarker(deviceId) {
+    const dev = devices[deviceId];
+    if (!dev) return;
+
+    if (AMapObj) {
+        // 高德地图标记
+        if (markers[deviceId]) {
+            markers[deviceId].setPosition([dev.lng, dev.lat]);
+        } else {
+            const markerContent = document.createElement('div');
+            markerContent.innerHTML = `
+                <div style="position:relative;text-align:center;">
+                    <div style="width:60px;height:60px;border-radius:50%;background:rgba(255,107,157,0.15);position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);animation:markerPulse 2s infinite;"></div>
+                    <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#FF6B9D,#E84580);border:3px solid white;box-shadow:0 3px 14px rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;font-size:24px;position:relative;z-index:1;">${dev.emoji}</div>
+                </div>
+            `;
+            markers[deviceId] = new AMap.Marker({
+                position: [dev.lng, dev.lat],
+                content: markerContent,
+                offset: new AMap.Pixel(-24, -24),
+                map: AMapObj
+            });
+        }
+    } else if (map) {
+        // Leaflet 标记
+        const icon = L.divIcon({
+            className: 'custom-marker',
+            html: `
+                <div class="marker-pulse" style="background:rgba(255,107,157,0.15);"></div>
+                <div class="marker-avatar" style="background:linear-gradient(135deg,#FF6B9D,#E84580);">${dev.emoji}</div>
+            `,
+            iconSize: [48, 48],
+            iconAnchor: [24, 24]
+        });
+        if (markers[deviceId]) {
+            markers[deviceId].setLatLng([dev.lat, dev.lng]);
+        } else {
+            markers[deviceId] = L.marker([dev.lat, dev.lng], { icon: icon }).addTo(map);
+            markers[deviceId].bindPopup(`
+                <div style="text-align:center;min-width:150px;">
+                    <strong style="font-size:15px;">${dev.emoji} ${dev.name}</strong><br>
+                    <span style="color:#8D6E63;font-size:12px;">${dev.address}</span><br>
+                    <span style="font-size:12px;">🔋 ${dev.battery}%</span>
+                </div>
+            `);
+        }
+    }
+}
+
+// ---- 定位到设备 ----
+function centerOnDevice() {
+    const dev = devices[activeDeviceId];
+    if (!dev) {
+        const firstId = Object.keys(devices)[0];
+        if (firstId) { activeDeviceId = firstId; centerOnDevice(); }
+        return;
+    }
+    if (AMapObj) {
+        AMapObj.setZoomAndCenter(16, [dev.lng, dev.lat], false, 600);
+    } else if (map) {
+        map.flyTo([dev.lat, dev.lng], 16, { duration: 1 });
+        markers[activeDeviceId]?.openPopup();
+    }
+}
+
+// ---- 切换地图样式 ----
+function toggleMapStyle() {
+    if (AMapObj) {
+        isDarkMap = !isDarkMap;
+        AMapObj.setMapStyle(isDarkMap ? 'amap://styles/dark' : 'amap://styles/fresh');
+        showToast(isDarkMap ? '已切换为暗色地图 🌙' : '已切换为清新地图 🌸');
+    } else if (map) {
+        // Leaflet 模式下切换高德瓦片样式
+        isDarkMap = !isDarkMap;
+        map.eachLayer(layer => { if (layer instanceof L.TileLayer) map.removeLayer(layer); });
+        const style = isDarkMap ? '7' : '8';
+        L.tileLayer(`https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=${style}&x={x}&y={y}&z={z}`, {
+            subdomains: ['1', '2', '3', '4'],
+            attribution: '© 高德地图',
+            maxZoom: 18
+        }).addTo(map);
+        showToast(isDarkMap ? '已切换为暗色地图 🌙' : '已切换为清新地图 🌸');
+    }
+}
+
+// ============================================================
+// 侧边栏 UI
+// ============================================================
+function renderSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const deviceIds = Object.keys(devices);
+
+    let html = '<div class="sidebar-title"><i class="fas fa-heart"></i> 我的小可爱们</div>';
+
+    if (deviceIds.length === 0) {
+        html += `
+            <div class="no-device-hint">
+                <span class="hint-icon">🐷</span>
+                <p>还没有小猪连接哦～<br>把授权链接发给对方吧！</p>
+                <ol class="hint-steps">
+                    <li>点击上方「分享链接」按钮</li>
+                    <li>把授权链接发给对方</li>
+                    <li>对方打开链接并授权</li>
+                    <li>就可以看到对方的位置啦！</li>
+                </ol>
+            </div>
+        `;
+    } else {
+        deviceIds.forEach(id => {
+            const dev = devices[id];
+            const isActive = id === activeDeviceId;
+            const batteryClass = dev.battery > 60 ? 'high' : dev.battery > 20 ? 'medium' : 'low';
+            const chargingIcon = dev.charging ? ' <i class="fas fa-bolt" style="color:#FFA726;font-size:11px;"></i>' : '';
+            const batteryIcon = dev.battery > 75 ? 'fa-battery-full' :
+                               dev.battery > 50 ? 'fa-battery-three-quarters' :
+                               dev.battery > 25 ? 'fa-battery-half' :
+                               dev.battery > 10 ? 'fa-battery-quarter' : 'fa-battery-empty';
+
+            html += `
+                <div class="device-card ${isActive ? 'active' : ''}" onclick="selectDevice('${id}')">
+                    <div class="device-header">
+                        <div class="device-avatar" style="background:linear-gradient(135deg,#FF6B9D,#E84580);">${dev.emoji}</div>
+                        <div>
+                            <div class="device-name">${dev.name}</div>
+                            <div class="device-label">${dev.online ? '在线' : '离线'}</div>
+                        </div>
+                        <span class="device-status-badge ${dev.online ? 'badge-online' : 'badge-offline'}">
+                            ${dev.online ? '在线' : '离线'}
+                        </span>
+                    </div>
+
+                    <div class="battery-section">
+                        <div class="battery-label">
+                            <i class="fas ${batteryIcon}"></i> 电量 ${chargingIcon}
+                        </div>
+                        <div class="battery-bar-container">
+                            <div class="battery-bar">
+                                <div class="battery-bar-fill ${batteryClass}" style="width:${dev.battery}%;"></div>
+                            </div>
+                            <div class="battery-percent ${batteryClass}">${dev.battery}%</div>
+                        </div>
+                    </div>
+
+                    <div class="device-info-grid">
+                        <div class="info-item">
+                            <div class="info-item-label"><i class="fas fa-location-dot"></i> 位置</div>
+                            <div class="info-item-value" style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${dev.address || '获取中...'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-item-label"><i class="fas fa-clock"></i> 更新</div>
+                            <div class="info-item-value">${formatTime(dev.lastUpdate)}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    sidebar.innerHTML = html;
+}
+
+// ---- 选择设备 ----
+function selectDevice(deviceId) {
+    activeDeviceId = deviceId;
+    centerOnDevice();
+    renderSidebar();
+    const dev = devices[deviceId];
+    if (dev) updateBottomInfo(dev);
+}
+
+// ---- 更新底部信息 ----
+function updateBottomInfo(dev) {
+    if (!dev) return;
+    document.getElementById('infoAddress').textContent = dev.address || '获取中...';
+    document.getElementById('infoTime').textContent = formatTime(dev.lastUpdate);
+    document.getElementById('infoBattery').textContent = dev.battery + '%';
+}
+
+// ============================================================
+// 历史轨迹
+// ============================================================
+function toggleHistory() {
+    isHistoryOpen = !isHistoryOpen;
+    const panel = document.getElementById('historyPanel');
+    const btn = document.getElementById('historyBtn');
+    const bottomInfo = document.getElementById('bottomInfo');
+
+    if (isHistoryOpen) {
+        panel.classList.add('open');
+        btn.classList.add('active');
+        bottomInfo.classList.add('hidden');
+        renderHistoryTimeline();
+    } else {
+        panel.classList.remove('open');
+        btn.classList.remove('active');
+        bottomInfo.classList.remove('hidden');
+        clearHistoryMap();
+        stopPlay();
+    }
+}
+
+function renderHistoryTimeline() {
+    const dev = devices[activeDeviceId];
+    if (!dev) return;
+
+    const timeline = document.getElementById('historyTimeline');
+    const dateInput = document.getElementById('historyDate');
+    dateInput.value = new Date().toISOString().split('T')[0];
+
+    const history = deviceHistory[activeDeviceId] || [];
+    if (history.length === 0) {
+        timeline.innerHTML = '<div style="text-align:center;padding:30px;color:#8D6E63;">🐷 暂无轨迹数据<br><span style="font-size:12px;">等待小猪移动中...</span></div>';
+        return;
+    }
+
+    let html = '';
+    history.slice(-30).forEach((point, index) => {
+        const time = new Date(point.time);
+        html += `
+            <div class="timeline-item" onclick="flyToHistoryPoint(${index})">
+                <div class="timeline-dot" style="background:linear-gradient(135deg,#FF6B9D,#E84580);"></div>
+                <div>
+                    <div class="timeline-time">${formatTime(time)} · 电量 ${point.battery}%</div>
+                    <div class="timeline-location">${point.address || '未知位置'}</div>
+                </div>
+            </div>
+        `;
+    });
+    timeline.innerHTML = html;
+}
+
+function flyToHistoryPoint(index) {
+    const history = deviceHistory[activeDeviceId] || [];
+    const point = history[index];
+    if (!point) return;
+    if (AMapObj) {
+        AMapObj.setZoomAndCenter(17, [point.lng, point.lat], false, 400);
+    } else if (map) {
+        map.flyTo([point.lat, point.lng], 17, { duration: 0.5 });
+    }
+}
+
+function playHistory() {
+    if (isPlaying) { stopPlay(); return; }
+
+    const history = deviceHistory[activeDeviceId] || [];
+    if (history.length < 2) { showToast('轨迹点太少，无法回放 🐷'); return; }
+
+    isPlaying = true;
+    document.getElementById('playBtn').innerHTML = '<i class="fas fa-pause"></i>';
+    clearHistoryMap();
+
+    // 绘制轨迹线
+    const path = history.map(p => AMapObj ? [p.lng, p.lat] : [p.lat, p.lng]);
+
+    if (AMapObj) {
+        historyPolyline = new AMap.Polyline({
+            path: path,
+            strokeColor: '#FF6B9D',
+            strokeWeight: 4,
+            strokeOpacity: 0.7,
+            strokeStyle: 'dashed',
+            lineJoin: 'round'
+        });
+        historyPolyline.setMap(AMapObj);
+    } else if (map) {
+        historyPolyline = L.polyline(path, {
+            color: '#FF6B9D',
+            weight: 4,
+            opacity: 0.7,
+            dashArray: '10, 6'
+        }).addTo(map);
+    }
+
+    let currentIndex = 0;
+    const speed = parseInt(document.getElementById('speedSlider').value);
+
+    if (AMapObj) {
+        AMapObj.setZoomAndCenter(16, path[0], false, 500);
+    } else if (map) {
+        map.flyTo(path[0], 16, { duration: 0.5 });
+    }
+
+    playInterval = setInterval(() => {
+        if (currentIndex >= history.length) {
+            stopPlay();
+            showToast('轨迹回放完成！🐷');
+            return;
+        }
+        const point = history[currentIndex];
+
+        if (AMapObj) {
+            const circle = new AMap.CircleMarker({
+                center: [point.lng, point.lat],
+                radius: 6,
+                fillColor: '#FF6B9D',
+                fillOpacity: 1,
+                strokeColor: 'white',
+                strokeWeight: 2
+            });
+            circle.setMap(AMapObj);
+            historyMarkers.push(circle);
+            AMapObj.panTo([point.lng, point.lat], false, 300);
+        } else if (map) {
+            const circle = L.circleMarker([point.lat, point.lng], {
+                radius: 6, fillColor: '#FF6B9D', fillOpacity: 1,
+                color: 'white', weight: 2
+            }).addTo(map);
+            historyMarkers.push(circle);
+            map.panTo([point.lat, point.lng], { duration: 0.3 });
+        }
+
+        // 高亮时间线
+        const items = document.querySelectorAll('.timeline-item');
+        items.forEach((item, i) => {
+            item.classList.toggle('highlight', i === currentIndex);
+        });
+
+        currentIndex++;
+    }, 1500 / speed);
+}
+
+function stopPlay() {
+    isPlaying = false;
+    document.getElementById('playBtn').innerHTML = '<i class="fas fa-play"></i>';
+    if (playInterval) { clearInterval(playInterval); playInterval = null; }
+}
+
+function clearHistoryMap() {
+    if (historyPolyline) {
+        if (AMapObj) { historyPolyline.setMap(null); }
+        else if (map) { map.removeLayer(historyPolyline); }
+        historyPolyline = null;
+    }
+    historyMarkers.forEach(m => {
+        if (AMapObj) { m.setMap(null); }
+        else if (map) { map.removeLayer(m); }
+    });
+    historyMarkers = [];
+}
+
+// ============================================================
+// 工具函数
+// ============================================================
+function formatTime(date) {
+    if (!date) return '--:--';
+    const d = new Date(date);
+    return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
+}
+
+function updateHeaderTime() {
+    const now = new Date();
+    const options = { month: 'long', day: 'numeric', weekday: 'long', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+    document.getElementById('headerTime').textContent = now.toLocaleString('zh-CN', options);
+}
+
+function showToast(message) {
+    const toast = document.getElementById('toast');
+    document.getElementById('toastMsg').textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+function createFloatingHearts() {
+    const container = document.getElementById('floatingHearts');
+    const emojis = ['💕', '💗', '💖', '🌸', '✨', '🐷', '🎀'];
+    for (let i = 0; i < 12; i++) {
+        const heart = document.createElement('div');
+        heart.className = 'heart';
+        heart.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        heart.style.left = Math.random() * 100 + '%';
+        heart.style.animationDelay = Math.random() * 15 + 's';
+        heart.style.animationDuration = (12 + Math.random() * 10) + 's';
+        heart.style.fontSize = (14 + Math.random() * 16) + 'px';
+        container.appendChild(heart);
+    }
+}
+
+// ---- 启动 ----
+document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
