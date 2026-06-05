@@ -684,6 +684,7 @@
         let isSharing = false;
         let updateInterval = null;
         let fileSha = null; // GitHub 文件 SHA（用于更新）
+        let isWriting = false; // 写入锁，防止并发冲突
         // GitHub 配置
         const GITHUB_REPO = 'xinghe008/piggy-tracker';
         // Token 分段存储避免 secret scanning（运行时拼接）
@@ -885,6 +886,8 @@
 
         async function pushData() {
             if (!isSharing) return;
+            if (isWriting) return; // 写入锁，避免并发冲突
+            isWriting = true;
             try {
                 const deviceId = 'device-' + getDeviceId();
                 let fileData = { devices: {} };
@@ -951,10 +954,14 @@
                 }
             } catch (e) {
                 console.warn('推送数据失败:', e);
+            } finally {
+                isWriting = false;
             }
         }
 
         async function sendOfflineStatus() {
+            if (isWriting) return;
+            isWriting = true;
             try {
                 let fileData = { devices: {} };
 
@@ -1001,6 +1008,8 @@
                 });
             } catch (e) {
                 console.warn('发送离线状态失败:', e);
+            } finally {
+                isWriting = false;
             }
         }
 
@@ -1062,6 +1071,8 @@
             if (!text) return;
             input.value = '';
             
+            if (isWriting) { showError('发送中，请稍等'); return; }
+            isWriting = true;
             try {
                 // 读取当前文件数据
                 let fileData = { devices: {} };
@@ -1120,6 +1131,8 @@
             } catch (e) {
                 console.warn('发送消息失败:', e);
                 showError('消息发送失败');
+            } finally {
+                isWriting = false;
             }
         }
 
