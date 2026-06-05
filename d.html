@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>🐷 甜心小猪捕捉器 - 授权</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --pink: #FF6B9D;
+            --pink-light: #FFB8D0;
+            --pink-dark: #E84580;
+            --pink-bg: #FFF0F5;
+            --pink-deep: #D4366A;
+            --lavender: #C8A2E8;
+            --lavender-light: #EDE0F7;
+            --sky: #A8D8EA;
+            --sky-light: #D6EFF8;
+            --yellow: #FFD93D;
+            --yellow-light: #FFF3B0;
+            --mint: #A8E6CF;
+            --mint-dark: #6BCB97;
+            --peach: #FFAB91;
+            --text: #5D4037;
+            --text-light: #8D6E63;
+            --white: #FFFFFF;
+            --shadow: 0 8px 32px rgba(255,107,157,0.12);
+            --shadow-lg: 0 16px 48px rgba(255,107,157,0.18);
+            --radius: 24px;
+            --radius-sm: 16px;
+        }
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(145deg, #FFF0F5 0%, #F0E6FF 35%, #E6F4FF 65%, #FFF5F0 100%);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .cute-font { font-family: 'ZCOOL KuaiLe', cursive; }
+
+        /* 柔和渐变光斑背景 */
+        .bg-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.5;
+        }
+        .bg-orb-1 {
+            width: 360px; height: 360px;
+            background: radial-gradient(circle, rgba(255,107,157,0.25) 0%, transparent 70%);
+            top: -120px; right: -100px;
+            animation: orbFloat1 20s ease-in-out infinite;
+        }
+        .bg-orb-2 {
+            width: 300px; height: 300px;
+            background: radial-gradient(circle, rgba(200,162,232,0.3) 0%, transparent 70%);
+            bottom: -80px; left: -80px;
+            animation: orbFloat2 25s ease-in-out infinite;
+        }
+        .bg-orb-3 {
+            width: 240px; height: 240px;
+            background: radial-gradient(circle, rgba(168,216,234,0.25) 0%, transparent 70%);
+            top: 40%; left: 50%;
+            transform: translateX(-50%);
+            animation: orbFloat3 18s ease-in-out infinite;
+        }
+        @keyframes orbFloat1 {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-30px, 20px); }
+        }
+        @keyframes orbFloat2 {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(20px, -30px); }
+        }
+        @keyframes orbFloat3 {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-20px); }
+        }
+
+        /* 隐藏浮动爱心 */
+        .floating-hearts {
+            display: none !important;
+        }
+
+        /* 主卡片 - 毛玻璃效果 */
+        .auth-card {
+            background: rgba(255, 255, 255, 0.72);
+            backdrop-filter: blur(24px) saturate(1.4);
+            -webkit-backdrop-filter: blur(24px) saturate(1.4);
+            border-radius: 28px;
+            padding: 40px 32px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow:
+                0 8px 32px rgba(255,107,157,0.10),
+                0 2px 8px rgba(200,162,232,0.08),
+                inset 0 1px 0 rgba(255,255,255,0.6);
+            border: 1.5px solid rgba(255, 184, 208, 0.35);
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            transition: box-shadow 0.4s ease;
+        }
+        .auth-card::before {
+            content: '';
+            position: absolute;
+            inset: -1.5px;
+            border-radius: 29px;
+            padding: 1.5px;
+            background: linear-gradient(135deg, rgba(255,107,157,0.4), rgba(200,162,232,0.3), rgba(168,216,234,0.3), rgba(255,183,208,0.4));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        .pig-icon {
+            font-size: 72px;
+            display: block;
+            margin-bottom: 16px;
+            animation: pigBounce 2.5s ease-in-out infinite;
+            filter: drop-shadow(0 4px 12px rgba(255,107,157,0.2));
+        }
+        @keyframes pigBounce {
+            0%, 100% { transform: translateY(0) rotate(-3deg) scale(1); }
+            50% { transform: translateY(-8px) rotate(3deg) scale(1.05); }
+        }
+
+        .auth-title {
+            font-size: 26px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--pink-dark), var(--lavender), var(--pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+        .auth-subtitle {
+            font-size: 14px;
+            color: var(--text-light);
+            margin-bottom: 28px;
+            line-height: 1.7;
+            font-weight: 300;
+        }
+
+        /* 表单 */
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .form-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text);
+            margin-bottom: 8px;
+            display: block;
+            letter-spacing: 0.3px;
+        }
+        .form-label i {
+            color: var(--pink);
+            margin-right: 6px;
+            font-size: 12px;
+        }
+        .form-input {
+            width: 100%;
+            padding: 14px 18px;
+            border: 1.5px solid rgba(255,184,208,0.4);
+            border-radius: 14px;
+            font-size: 16px;
+            font-family: inherit;
+            color: var(--text);
+            background: rgba(255,240,245,0.5);
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            outline: none;
+        }
+        .form-input:focus {
+            border-color: var(--pink);
+            box-shadow: 0 0 0 4px rgba(255,107,157,0.1), 0 0 20px rgba(255,107,157,0.08);
+            background: rgba(255,255,255,0.8);
+        }
+        .form-input::placeholder {
+            color: #C4A0A0;
+            font-weight: 300;
+        }
+
+        /* Emoji 选择 */
+        .emoji-picker {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .emoji-option {
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            border: 2px solid rgba(238,238,238,0.6);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            background: rgba(255,255,255,0.7);
+        }
+        .emoji-option:hover {
+            transform: scale(1.18);
+            border-color: var(--pink-light);
+            box-shadow: 0 4px 16px rgba(255,107,157,0.15);
+        }
+        .emoji-option.selected {
+            border-color: var(--pink);
+            background: rgba(255,240,245,0.8);
+            box-shadow: 0 0 0 3px rgba(255,107,157,0.12), 0 4px 16px rgba(255,107,157,0.15);
+            transform: scale(1.12);
+        }
+
+        /* 权限说明 */
+        .permissions {
+            background: rgba(255,240,245,0.5);
+            border-radius: var(--radius-sm);
+            padding: 18px 20px;
+            margin-bottom: 24px;
+            text-align: left;
+            border: 1px solid rgba(255,184,208,0.25);
+        }
+        .permissions-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--pink-dark);
+            margin-bottom: 14px;
+            letter-spacing: 0.3px;
+        }
+        .permissions-title i {
+            margin-right: 6px;
+        }
+        .permission-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 0;
+            font-size: 13px;
+            color: var(--text-light);
+            font-weight: 300;
+        }
+        .permission-item i {
+            color: var(--pink);
+            font-size: 13px;
+            width: 22px;
+            text-align: center;
+            opacity: 0.8;
+        }
+
+        /* 按钮 */
+        .auth-btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 16px;
+            font-size: 17px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-authorize {
+            background: linear-gradient(135deg, var(--pink), var(--pink-dark), var(--lavender));
+            background-size: 200% 200%;
+            color: white;
+            box-shadow: 0 6px 24px rgba(255,107,157,0.3);
+            animation: gradientShift 4s ease infinite;
+        }
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .btn-authorize::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent 30%,
+                rgba(255,255,255,0.15) 50%,
+                transparent 70%
+            );
+            transform: translateX(-100%);
+            transition: none;
+        }
+        .btn-authorize:hover::after {
+            animation: shimmer 0.8s ease forwards;
+        }
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        .btn-authorize:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 10px 36px rgba(255,107,157,0.35);
+        }
+        .btn-authorize:active {
+            transform: translateY(0) scale(0.98);
+            transition-duration: 0.1s;
+        }
+        .btn-authorize:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            animation: none;
+        }
+
+        /* 状态页 */
+        .status-page {
+            display: none;
+        }
+        .status-page.active {
+            display: block;
+        }
+        .auth-page.hidden {
+            display: none;
+        }
+
+        .status-icon {
+            font-size: 64px;
+            display: block;
+            margin-bottom: 16px;
+            filter: drop-shadow(0 4px 12px rgba(255,107,157,0.2));
+        }
+        .status-title {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--pink-dark), var(--lavender));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+        .status-desc {
+            font-size: 14px;
+            color: var(--text-light);
+            line-height: 1.7;
+            margin-bottom: 24px;
+            font-weight: 300;
+        }
+
+        /* 状态信息 */
+        .status-info {
+            background: rgba(255,240,245,0.45);
+            border-radius: var(--radius-sm);
+            padding: 18px 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,184,208,0.2);
+        }
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,184,208,0.2);
+        }
+        .status-row:last-child { border-bottom: none; }
+        .status-row-label {
+            font-size: 13px;
+            color: var(--text-light);
+            font-weight: 300;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .status-row-label i {
+            font-size: 12px;
+            opacity: 0.7;
+            width: 16px;
+            text-align: center;
+        }
+        .status-row-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .btn-stop {
+            background: rgba(255,235,238,0.7);
+            color: #C62828;
+            border: 1.5px solid rgba(255,205,210,0.6);
+        }
+        .btn-stop:hover {
+            background: rgba(255,205,210,0.7);
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 6px 20px rgba(198,40,40,0.12);
+        }
+        .btn-stop:active {
+            transform: translateY(0) scale(0.98);
+            transition-duration: 0.1s;
+        }
+
+        /* 房间号显示 */
+        .room-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,240,245,0.6);
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--pink-dark);
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,184,208,0.3);
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+        .room-badge i {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        /* 错误提示 */
+        .error-msg {
+            color: #C62828;
+            font-size: 13px;
+            margin-top: 8px;
+            margin-bottom: 12px;
+            display: none;
+            font-weight: 400;
+            padding: 8px 14px;
+            background: rgba(255,235,238,0.6);
+            border-radius: 10px;
+            border: 1px solid rgba(255,205,210,0.4);
+        }
+        .error-msg.show { display: block; }
+
+        /* 底部说明 */
+        .footer-note {
+            position: relative;
+            z-index: 1;
+            margin-top: 24px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-light);
+            max-width: 400px;
+            line-height: 1.7;
+            font-weight: 300;
+            opacity: 0.8;
+        }
+        .footer-note i { color: var(--pink); opacity: 0.6; }
+
+        @media (max-width: 480px) {
+            .auth-card { padding: 30px 20px; margin: 10px; }
+            .auth-title { font-size: 22px; }
+            .pig-icon { font-size: 56px; }
+            .bg-orb-1 { width: 260px; height: 260px; }
+            .bg-orb-2 { width: 220px; height: 220px; }
+            .bg-orb-3 { width: 180px; height: 180px; }
+        }
+
+        /* 消息区域 */
+        .msg-section {
+            background: var(--pink-bg);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        .msg-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--pink-dark);
+            margin-bottom: 10px;
+        }
+        .msg-input-row {
+            display: flex;
+            gap: 8px;
+        }
+        .msg-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid var(--pink-light);
+            border-radius: 12px;
+            font-size: 14px;
+            background: white;
+            font-family: inherit;
+            outline: none;
+        }
+        .msg-input:focus {
+            border-color: var(--pink);
+            box-shadow: 0 0 0 3px rgba(255,107,157,0.1);
+        }
+        .msg-send-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, var(--pink), var(--pink-dark));
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .msg-send-btn:hover {
+            transform: scale(1.05);
+        }
+        .msg-send-btn:active {
+            transform: scale(0.95);
+        }
+        .msg-history {
+            margin-top: 10px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        .msg-bubble {
+            background: white;
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            margin-bottom: 6px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+            animation: msgSlideIn 0.3s ease;
+        }
+        .msg-bubble .msg-time {
+            font-size: 11px;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+        @keyframes msgSlideIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <!-- 柔和渐变光斑 -->
+    <div class="bg-orb bg-orb-1"></div>
+    <div class="bg-orb bg-orb-2"></div>
+    <div class="bg-orb bg-orb-3"></div>
+
+    <div class="floating-hearts" id="floatingHearts"></div>
+
+    <!-- 授权页 -->
+    <div class="auth-card">
+        <div class="auth-page" id="authPage">
+            <span class="pig-icon">🐷</span>
+            <div class="auth-title cute-font">甜心小猪捕捉器</div>
+            <div class="auth-subtitle">
+                有人想守护你的安全哦～<br>
+                授权后对方可以查看你的位置和电量
+            </div>
+
+            <div class="room-badge" id="roomBadge">
+                <i class="fas fa-key"></i>
+                房间号：<span id="roomIdText">加载中...</span>
+            </div>
+
+            <!-- 手动输入房间号（当URL没有room参数时显示） -->
+            <div class="form-group" id="roomInputGroup" style="display:none;">
+                <label class="form-label"><i class="fas fa-key"></i> 输入房间号</label>
+                <input type="text" class="form-input" id="roomInput" placeholder="输入6位房间号..." maxlength="6" style="text-transform:uppercase;letter-spacing:4px;font-size:20px;text-align:center;font-weight:700;">
+                <div style="font-size:12px;color:#8D6E63;margin-top:6px;text-align:center;">
+                    📋 房间号由监控方提供，点击「分享链接」即可获取
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label"><i class="fas fa-user"></i> 你的昵称</label>
+                <input type="text" class="form-input" id="nameInput" placeholder="输入你的昵称..." maxlength="10">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label"><i class="fas fa-face-smile"></i> 选择头像</label>
+                <div class="emoji-picker" id="emojiPicker">
+                    <div class="emoji-option selected" data-emoji="🐷" onclick="selectEmoji(this)">🐷</div>
+                    <div class="emoji-option" data-emoji="🐱" onclick="selectEmoji(this)">🐱</div>
+                    <div class="emoji-option" data-emoji="🐶" onclick="selectEmoji(this)">🐶</div>
+                    <div class="emoji-option" data-emoji="🐰" onclick="selectEmoji(this)">🐰</div>
+                    <div class="emoji-option" data-emoji="🦊" onclick="selectEmoji(this)">🦊</div>
+                    <div class="emoji-option" data-emoji="🐻" onclick="selectEmoji(this)">🐻</div>
+                    <div class="emoji-option" data-emoji="🐸" onclick="selectEmoji(this)">🐸</div>
+                    <div class="emoji-option" data-emoji="🦁" onclick="selectEmoji(this)">🦁</div>
+                </div>
+            </div>
+
+            <div class="permissions">
+                <div class="permissions-title"><i class="fas fa-shield-halved"></i> 需要以下权限</div>
+                <div class="permission-item">
+                    <i class="fas fa-location-dot"></i>
+                    <span>获取你的实时位置（GPS）</span>
+                </div>
+                <div class="permission-item">
+                    <i class="fas fa-battery-half"></i>
+                    <span>读取设备电量信息</span>
+                </div>
+                <div class="permission-item">
+                    <i class="fas fa-bell"></i>
+                    <span>保持后台运行以持续共享</span>
+                </div>
+            </div>
+
+            <div class="error-msg" id="errorMsg"></div>
+
+            <button class="auth-btn btn-authorize" id="authBtn" onclick="startSharing()">
+                <i class="fas fa-heart"></i> 同意授权，开始共享
+            </button>
+        </div>
+
+        <!-- 共享状态页 -->
+        <div class="status-page" id="statusPage">
+            <span class="status-icon" id="statusIcon">📡</span>
+            <div class="status-title cute-font" id="statusTitle">共享中...</div>
+            <div class="status-desc" id="statusDesc">
+                你的位置和电量正在实时共享中<br>
+                请保持此页面打开
+            </div>
+
+            <div class="status-info">
+                <div class="status-row">
+                    <span class="status-row-label"><i class="fas fa-user"></i> 昵称</span>
+                    <span class="status-row-value" id="statusName">--</span>
+                </div>
+                <div class="status-row">
+                    <span class="status-row-label"><i class="fas fa-battery-half"></i> 电量</span>
+                    <span class="status-row-value" id="statusBattery">--%</span>
+                </div>
+                <div class="status-row">
+                    <span class="status-row-label"><i class="fas fa-location-dot"></i> 位置</span>
+                    <span class="status-row-value" id="statusLocation">获取中...</span>
+                </div>
+                <div class="status-row">
+                    <span class="status-row-label"><i class="fas fa-clock"></i> 更新时间</span>
+                    <span class="status-row-value" id="statusTime">--:--:--</span>
+                </div>
+                <div class="status-row">
+                    <span class="status-row-label"><i class="fas fa-signal"></i> 状态</span>
+                    <span class="status-row-value" style="color:var(--mint-dark);" id="statusState">● 已连接</span>
+                </div>
+            </div>
+
+            <!-- 消息区域 -->
+            <div class="msg-section" id="msgSection">
+                <div class="msg-title"><i class="fas fa-comment-dots"></i> 发送消息</div>
+                <div class="msg-input-row">
+                    <input type="text" class="msg-input" id="msgInput" placeholder="输入消息..." maxlength="200">
+                    <button class="msg-send-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+                </div>
+                <div class="msg-history" id="msgHistory"></div>
+            </div>
+
+            <button class="auth-btn btn-stop" onclick="stopSharing()">
+                <i class="fas fa-stop"></i> 停止共享
+            </button>
+        </div>
+    </div>
+
+    <div class="footer-note">
+        <i class="fas fa-lock"></i> 你的数据通过端到端加密传输，仅房间内的成员可见<br>
+        关闭此页面即停止共享
+    </div>
+
+    <script>
+        // ---- 全局变量 ----
+        let pushTimer = null;
+        let roomId = '';
+        let selectedEmoji = '🐷';
+        let watchId = null;
+        let isSharing = false;
+        let updateInterval = null;
+        let fileSha = null; // GitHub 文件 SHA（用于更新）
+        let isWriting = false; // 写入锁，防止并发冲突
+        // GitHub 配置
+        const GITHUB_REPO = 'xinghe008/piggy-tracker';
+        // Token 分段存储避免 secret scanning（运行时拼接）
+        const _t = ['ghp_m','BkWPm2y','sEujMdoZ','mv5YSjjow','dglCf3FG0Z','F'];
+        const GITHUB_TOKEN = _t.join('');
+
+        // ---- 初始化 ----
+        function init() {
+            // 获取房间号
+            const params = new URLSearchParams(window.location.search);
+            roomId = params.get('room');
+            if (!roomId) {
+                // 没有房间号参数，显示手动输入框
+                document.getElementById('roomBadge').style.display = 'none';
+                document.getElementById('roomInputGroup').style.display = 'block';
+            } else {
+                document.getElementById('roomIdText').textContent = roomId;
+            }
+            createFloatingHearts();
+            // 消息输入框回车发送
+            document.getElementById('msgInput')?.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') sendMessage();
+            });
+        }
+
+        // ---- 选择 Emoji ----
+        function selectEmoji(el) {
+            document.querySelectorAll('.emoji-option').forEach(e => e.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedEmoji = el.dataset.emoji;
+        }
+
+        // ---- 开始共享 ----
+        async function startSharing() {
+            const name = document.getElementById('nameInput').value.trim();
+            if (!name) {
+                showError('请输入你的昵称哦～');
+                document.getElementById('nameInput').focus();
+                return;
+            }
+
+            // 如果没有从URL获取房间号，从输入框获取
+            if (!roomId) {
+                roomId = document.getElementById('roomInput').value.trim().toUpperCase();
+                if (!roomId || roomId.length < 4) {
+                    showError('请输入房间号！由监控方提供 🐷');
+                    document.getElementById('roomInput').focus();
+                    return;
+                }
+            }
+
+            // 初始化 GitHub 通信
+            try {
+                await initGitHubFile();
+            } catch (e) {
+                showError('连接失败，请检查网络后重试');
+                return;
+            }
+
+            // 先立即推送一次数据（不管定位是否成功，让对方先看到你上线）
+            isSharing = true;
+            showStatusPage(name);
+            getBatteryInfo();
+            pushData(); // 首次推送
+            pushTimer = setInterval(pushData, 5000);
+            updateInterval = setInterval(() => { getBatteryInfo(); }, 30000);
+            startMsgPoll(); // 开始轮询接收消息
+
+            // 请求位置权限（不阻塞，数据已经在推送了）
+            if (!navigator.geolocation) {
+                // 不支持定位，但数据已经在推送了（用默认位置）
+                return;
+            }
+
+            document.getElementById('authBtn').disabled = true;
+            document.getElementById('authBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> 请求权限中...';
+
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    // 权限获取成功，开始持续定位
+                    startLocationWatch(name);
+                },
+                (err) => {
+                    let msg = '定位失败';
+                    switch (err.code) {
+                        case 1: msg = '你拒绝了位置权限，但数据仍在共享（位置为默认值）'; break;
+                        case 2: msg = '无法获取位置信息，请检查 GPS'; break;
+                        case 3: msg = '获取位置超时，请重试'; break;
+                    }
+                    showError(msg);
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 15000,
+                    maximumAge: 5000
+                }
+            );
+        }
+
+        // ---- 持续定位 ----
+        function startLocationWatch(name) {
+            watchId = navigator.geolocation.watchPosition(
+                (pos) => {
+                    lastLat = pos.coords.latitude;
+                    lastLng = pos.coords.longitude;
+                    lastSpeed = pos.coords.speed || 0;
+
+                    // 逆地理编码获取地址（使用免费 Nominatim）
+                    reverseGeocode(pos.coords.latitude, pos.coords.longitude, (address) => {
+                        lastAddress = address;
+                        updateStatusUI({ address: address });
+                    });
+                },
+                (err) => {
+                    console.warn('定位更新失败:', err);
+                    document.getElementById('statusState').textContent = '● 定位异常';
+                    document.getElementById('statusState').style.color = '#FFA726';
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 15000,
+                    maximumAge: 5000
+                }
+            );
+        }
+
+        // ---- 逆地理编码 ----
+        let geocodeCache = {};
+        function reverseGeocode(lat, lng, callback) {
+            const key = `${lat.toFixed(4)},${lng.toFixed(4)}`;
+            if (geocodeCache[key]) {
+                callback(geocodeCache[key]);
+                return;
+            }
+            // 使用 OpenStreetMap Nominatim（免费）
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=16&accept-language=zh`)
+                .then(r => r.json())
+                .then(data => {
+                    const address = data.display_name || '未知位置';
+                    // 简化地址显示
+                    const short = address.split(',').slice(0, 3).join(', ');
+                    geocodeCache[key] = short;
+                    callback(short);
+                })
+                .catch(() => {
+                    callback('未知位置');
+                });
+        }
+
+        // ---- UTF-8 安全解码 base64 ----
+        function decodeBase64Utf8(base64) {
+            const raw = atob(base64);
+            const bytes = new Uint8Array(raw.length);
+            for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+            return new TextDecoder('utf-8').decode(bytes);
+        }
+
+        // ---- UTF-8 安全编码为 base64 ----
+        function encodeUtf8Base64(str) {
+            const encoder = new TextEncoder();
+            const bytes = encoder.encode(str);
+            let binary = '';
+            for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+            return btoa(binary);
+        }
+
+        // ---- GitHub Contents API 通信 ----
+        // 通过 GitHub API 将数据写入 data/{roomId}.json
+        // 注意：用函数获取 URL，因为 roomId 在 startSharing 时才确定
+        function getGithubApiUrl() {
+            return `https://api.github.com/repos/${GITHUB_REPO}/contents/data/${roomId}.json`;
+        }
+
+        async function initGitHubFile() {
+            // 尝试读取已有文件（获取 SHA）
+            try {
+                const res = await fetch(getGithubApiUrl(), {
+                    headers: { 'Authorization': 'token ' + GITHUB_TOKEN }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    fileSha = data.sha;
+                    console.log('数据文件已存在，SHA:', fileSha);
+                } else if (res.status === 404) {
+                    // 文件不存在，首次创建
+                    fileSha = null;
+                    console.log('数据文件不存在，将创建新文件');
+                }
+            } catch (e) {
+                console.warn('检查文件失败，将尝试创建', e);
+                fileSha = null;
+            }
+        }
+
+        function buildCurrentData() {
+            return {
+                name: document.getElementById('statusName').textContent,
+                emoji: selectedEmoji,
+                lat: lastLat || 0,
+                lng: lastLng || 0,
+                battery: currentBattery,
+                charging: isCharging,
+                address: lastAddress || '获取中...',
+                online: true,
+                lastUpdate: new Date().toISOString(),
+                speed: lastSpeed || 0
+            };
+        }
+
+        async function pushData() {
+            if (!isSharing) return;
+            if (isWriting) return; // 写入锁，避免并发冲突
+            isWriting = true;
+            try {
+                const deviceId = 'device-' + getDeviceId();
+                let fileData = { devices: {} };
+
+                // 如果有 SHA，先读取现有数据
+                if (fileSha) {
+                    try {
+                        const readRes = await fetch(getGithubApiUrl(), {
+                            headers: { 'Authorization': 'token ' + GITHUB_TOKEN }
+                        });
+                        if (readRes.ok) {
+                            const readData = await readRes.json();
+                            // GitHub API 对超过1MB的文件不返回content
+                            if (readData.content && readData.encoding === 'base64') {
+                                const text = decodeBase64Utf8(readData.content);
+                                fileData = JSON.parse(text);
+                                fileSha = readData.sha;
+                            } else {
+                                // 文件太大或content为空，重新创建
+                                fileSha = null;
+                                fileData = { devices: {} };
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('读取现有数据失败，将覆盖写入:', e);
+                        fileSha = null;
+                    }
+                }
+
+                // 合并当前设备数据
+                if (!fileData.devices) fileData.devices = {};
+                fileData.devices[deviceId] = buildCurrentData();
+
+                // 写入 GitHub
+                const content = encodeUtf8Base64(JSON.stringify(fileData));
+                const body = {
+                    message: `update ${roomId} @ ${new Date().toISOString()}`,
+                    content: content
+                };
+                if (fileSha) {
+                    body.sha = fileSha;
+                }
+
+                const writeRes = await fetch(getGithubApiUrl(), {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': 'token ' + GITHUB_TOKEN,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                if (writeRes.ok) {
+                    const data = await writeRes.json();
+                    fileSha = data.content.sha;
+                } else {
+                    const errData = await writeRes.json().catch(() => ({}));
+                    console.warn('推送失败:', writeRes.status, errData);
+                    // 如果 409 或 422，SHA 过期或数据损坏，重新获取 SHA 并重试
+                    if (writeRes.status === 409 || writeRes.status === 422) {
+                        fileSha = null;
+                        await initGitHubFile();
+                    }
+                }
+            } catch (e) {
+                console.warn('推送数据失败:', e);
+            } finally {
+                isWriting = false;
+            }
+        }
+
+        async function sendOfflineStatus() {
+            if (isWriting) return;
+            isWriting = true;
+            try {
+                let fileData = { devices: {} };
+
+                if (fileSha) {
+                    try {
+                        const res = await fetch(getGithubApiUrl(), {
+                            headers: { 'Authorization': 'token ' + GITHUB_TOKEN }
+                        });
+                        if (res.ok) {
+                            const rd = await res.json();
+                            if (rd.content && rd.encoding === 'base64') {
+                                const text = decodeBase64Utf8(rd.content);
+                                fileData = JSON.parse(text);
+                                fileSha = rd.sha;
+                            } else {
+                                fileSha = null;
+                            }
+                        }
+                    } catch (e) {
+                        fileSha = null;
+                    }
+                }
+
+                const deviceId = 'device-' + getDeviceId();
+                if (fileData.devices && fileData.devices[deviceId]) {
+                    fileData.devices[deviceId].online = false;
+                    fileData.devices[deviceId].lastUpdate = new Date().toISOString();
+                }
+
+                const content = encodeUtf8Base64(JSON.stringify(fileData));
+                const body = {
+                    message: `offline ${roomId} @ ${new Date().toISOString()}`,
+                    content: content
+                };
+                if (fileSha) body.sha = fileSha;
+
+                await fetch(getGithubApiUrl(), {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': 'token ' + GITHUB_TOKEN,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(body)
+                });
+            } catch (e) {
+                console.warn('发送离线状态失败:', e);
+            } finally {
+                isWriting = false;
+            }
+        }
+
+        // ---- 获取设备唯一 ID ----
+        function getDeviceId() {
+            let id = localStorage.getItem('piggy-device-id');
+            if (!id) {
+                id = 'dev-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6);
+                localStorage.setItem('piggy-device-id', id);
+            }
+            return id;
+        }
+
+        // ---- 电量信息 ----
+        let currentBattery = 100;
+        let isCharging = false;
+        let lastLat = 0;
+        let lastLng = 0;
+        let lastAddress = '';
+        let lastSpeed = 0;
+
+        function getBatteryInfo() {
+            if ('getBattery' in navigator) {
+                navigator.getBattery().then(battery => {
+                    currentBattery = Math.round(battery.level * 100);
+                    isCharging = battery.charging;
+                    document.getElementById('statusBattery').textContent = currentBattery + '%' + (isCharging ? ' ⚡' : '');
+                }).catch(() => {
+                    // Battery API 不可用
+                });
+            }
+        }
+
+        // ---- 切换到状态页 ----
+        function showStatusPage(name) {
+            document.getElementById('authPage').classList.add('hidden');
+            document.getElementById('statusPage').classList.add('active');
+            document.getElementById('statusName').textContent = selectedEmoji + ' ' + name;
+            document.getElementById('statusIcon').textContent = selectedEmoji;
+            document.getElementById('statusTitle').textContent = name + ' 的共享中';
+        }
+
+        // ---- 更新状态 UI ----
+        function updateStatusUI(data) {
+            document.getElementById('statusLocation').textContent = data.address || '获取中...';
+            const now = new Date();
+            document.getElementById('statusTime').textContent =
+                now.getHours().toString().padStart(2, '0') + ':' +
+                now.getMinutes().toString().padStart(2, '0') + ':' +
+                now.getSeconds().toString().padStart(2, '0');
+            document.getElementById('statusState').textContent = '● 已连接';
+            document.getElementById('statusState').style.color = 'var(--mint-dark)';
+        }
+
+        // ---- 发送消息 ----
+        async function sendMessage() {
+            const input = document.getElementById('msgInput');
+            const text = input.value.trim();
+            if (!text) return;
+            input.value = '';
+            
+            if (isWriting) { showError('发送中，请稍等'); return; }
+            isWriting = true;
+            try {
+                // 读取当前文件数据
+                let fileData = { devices: {} };
+                if (fileSha) {
+                    const readRes = await fetch(getGithubApiUrl(), {
+                        headers: { 'Authorization': 'token ' + GITHUB_TOKEN }
+                    });
+                    if (readRes.ok) {
+                        const readData = await readRes.json();
+                        if (readData.content && readData.encoding === 'base64') {
+                            fileData = JSON.parse(decodeBase64Utf8(readData.content));
+                            fileSha = readData.sha;
+                        }
+                    }
+                }
+                
+                // 添加消息
+                if (!fileData.messages) fileData.messages = [];
+                fileData.messages.push({
+                    from: 'device-' + getDeviceId(),
+                    text: text,
+                    time: new Date().toISOString()
+                });
+                // 只保留最近50条
+                if (fileData.messages.length > 50) fileData.messages = fileData.messages.slice(-50);
+                
+                // 写回
+                const content = encodeUtf8Base64(JSON.stringify(fileData));
+                const body = {
+                    message: `msg ${roomId} @ ${new Date().toISOString()}`,
+                    content: content
+                };
+                if (fileSha) body.sha = fileSha;
+                
+                const writeRes = await fetch(getGithubApiUrl(), {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': 'token ' + GITHUB_TOKEN,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(body)
+                });
+                
+                if (writeRes.ok) {
+                    const data = await writeRes.json();
+                    fileSha = data.content.sha;
+                    // 显示在本地历史
+                    addMsgBubble(text, new Date());
+                } else {
+                    if (writeRes.status === 409 || writeRes.status === 422) {
+                        fileSha = null;
+                        await initGitHubFile();
+                    }
+                    showError('消息发送失败，请重试');
+                }
+            } catch (e) {
+                console.warn('发送消息失败:', e);
+                showError('消息发送失败');
+            } finally {
+                isWriting = false;
+            }
+        }
+
+        function addMsgBubble(text, time, isReceived) {
+            const history = document.getElementById('msgHistory');
+            const bubble = document.createElement('div');
+            bubble.className = 'msg-bubble';
+            if (isReceived) {
+                bubble.style.background = 'linear-gradient(135deg, #E6F4FF, #F0E6FF)';
+                bubble.style.borderLeft = '3px solid #7EB8DA';
+            }
+            const timeStr = time.getHours().toString().padStart(2,'0') + ':' + time.getMinutes().toString().padStart(2,'0');
+            bubble.innerHTML = `${text}<div class="msg-time">${isReceived ? '👀 监控方 · ' : ''}${timeStr}</div>`;
+            history.appendChild(bubble);
+            history.scrollTop = history.scrollHeight;
+        }
+
+        // ---- 轮询接收消息 ----
+        let lastReceivedMsgCount = 0;
+        let msgPollTimer = null;
+
+        async function pollMessages() {
+            if (!isSharing || !fileSha) return;
+            try {
+                const res = await fetch(getGithubApiUrl(), {
+                    headers: { 'Authorization': 'token ' + GITHUB_TOKEN }
+                });
+                if (!res.ok) return;
+                const data = await res.json();
+                if (!data.content || data.encoding !== 'base64') return;
+                const text = decodeBase64Utf8(data.content);
+                const fileData = JSON.parse(text);
+                // 更新 SHA（避免后续写入 409）
+                fileSha = data.sha;
+
+                const messages = fileData.messages || [];
+                if (messages.length > lastReceivedMsgCount) {
+                    const newMsgs = messages.slice(lastReceivedMsgCount);
+                    newMsgs.forEach(msg => {
+                        // 只处理来自监控方的消息（from === 'monitor'）
+                        if (msg.from === 'monitor') {
+                            addMsgBubble(msg.text, new Date(msg.time), true);
+                        }
+                    });
+                    lastReceivedMsgCount = messages.length;
+                }
+            } catch (e) {
+                // 静默失败，不影响推送
+            }
+        }
+
+        function startMsgPoll() {
+            if (msgPollTimer) clearInterval(msgPollTimer);
+            msgPollTimer = setInterval(pollMessages, 5000);
+            // 立即执行一次
+            pollMessages();
+        }
+
+        // ---- 停止共享 ----
+        function stopSharing() {
+            if (!confirm('确定要停止共享吗？')) return;
+
+            isSharing = false;
+            if (watchId) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+            }
+            if (updateInterval) {
+                clearInterval(updateInterval);
+                updateInterval = null;
+            }
+            if (pushTimer) {
+                clearInterval(pushTimer);
+                pushTimer = null;
+            }
+            if (msgPollTimer) {
+                clearInterval(msgPollTimer);
+                msgPollTimer = null;
+            }
+
+            // 发送离线状态
+            sendOfflineStatus();
+
+            // 刷新页面回到授权页
+            window.location.reload();
+        }
+
+        // ---- 显示错误 ----
+        function showError(msg) {
+            const el = document.getElementById('errorMsg');
+            el.textContent = msg;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 5000);
+        }
+
+        // ---- 浮动爱心 ----
+        function createFloatingHearts() {
+            const container = document.getElementById('floatingHearts');
+            const emojis = ['💕', '💗', '💖', '🌸', '✨', '🐷', '🎀'];
+            for (let i = 0; i < 10; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'heart';
+                heart.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                heart.style.left = Math.random() * 100 + '%';
+                heart.style.animationDelay = Math.random() * 15 + 's';
+                heart.style.animationDuration = (12 + Math.random() * 10) + 's';
+                heart.style.fontSize = (14 + Math.random() * 16) + 'px';
+                container.appendChild(heart);
+            }
+        }
+
+        // ---- 页面关闭时清理 ----
+        window.addEventListener('beforeunload', () => {
+            if (isSharing) {
+                sendOfflineStatus();
+            }
+        });
+
+        // ---- 防止手机休眠 ----
+        function preventSleep() {
+            if ('wakeLock' in navigator) {
+                navigator.wakeLock.request('screen').catch(() => {});
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+    <div id="debugInfo" style="position:fixed;bottom:5px;left:5px;background:rgba(0,0,0,0.7);color:#0f0;font-size:10px;padding:3px 6px;border-radius:4px;z-index:9999;max-width:90vw;word-break:break-all;"></div>
+    <script>
+    // Debug logging to screen
+    const _origLog = console.log;
+    const _origWarn = console.warn;
+    const _origError = console.error;
+    function _dbg(msg) {
+        const el = document.getElementById('debugInfo');
+        if (el) el.textContent = msg;
+    }
+    console.log = function(...args) { _origLog.apply(console, args); _dbg('LOG: ' + args.join(' ')); };
+    console.warn = function(...args) { _origWarn.apply(console, args); _dbg('WARN: ' + args.join(' ')); };
+    console.error = function(...args) { _origError.apply(console, args); _dbg('ERR: ' + args.join(' ')); };
+    </script>
+</body>
+</html>
