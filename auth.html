@@ -365,6 +365,15 @@
                 房间号：<span id="roomIdText">加载中...</span>
             </div>
 
+            <!-- 手动输入房间号（当URL没有room参数时显示） -->
+            <div class="form-group" id="roomInputGroup" style="display:none;">
+                <label class="form-label"><i class="fas fa-key"></i> 输入房间号</label>
+                <input type="text" class="form-input" id="roomInput" placeholder="输入6位房间号..." maxlength="6" style="text-transform:uppercase;letter-spacing:4px;font-size:20px;text-align:center;font-weight:700;">
+                <div style="font-size:12px;color:#8D6E63;margin-top:6px;text-align:center;">
+                    📋 房间号由监控方提供，点击「分享链接」即可获取
+                </div>
+            </div>
+
             <div class="form-group">
                 <label class="form-label"><i class="fas fa-user"></i> 你的昵称</label>
                 <input type="text" class="form-input" id="nameInput" placeholder="输入你的昵称..." maxlength="10">
@@ -466,11 +475,12 @@
             const params = new URLSearchParams(window.location.search);
             roomId = params.get('room');
             if (!roomId) {
-                showError('无效的链接！请确认链接是否正确 🐷');
-                document.getElementById('authBtn').disabled = true;
-                return;
+                // 没有房间号参数，显示手动输入框
+                document.getElementById('roomBadge').style.display = 'none';
+                document.getElementById('roomInputGroup').style.display = 'block';
+            } else {
+                document.getElementById('roomIdText').textContent = roomId;
             }
-            document.getElementById('roomIdText').textContent = roomId;
             createFloatingHearts();
         }
 
@@ -488,6 +498,16 @@
                 showError('请输入你的昵称哦～');
                 document.getElementById('nameInput').focus();
                 return;
+            }
+
+            // 如果没有从URL获取房间号，从输入框获取
+            if (!roomId) {
+                roomId = document.getElementById('roomInput').value.trim().toUpperCase();
+                if (!roomId || roomId.length < 4) {
+                    showError('请输入房间号！由监控方提供 🐷');
+                    document.getElementById('roomInput').focus();
+                    return;
+                }
             }
 
             // 初始化 Gun.js
